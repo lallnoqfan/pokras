@@ -1,4 +1,4 @@
-from text.tags import Tags as T
+from game.text.tags import Tags as T
 
 
 class Responses:
