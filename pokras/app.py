@@ -1,22 +1,9 @@
 from discord import Intents
-from discord.ext.commands import Context, Bot, check
+from discord.ext.commands import Bot
 
-from commands.game import GameCommands
+from game.commands.country import CountryCommands
+from game.commands.game import GameCommands
 from config import BotConfig, ConnectionConfig
-
-
-def is_admin():
-    """
-    A custom check decorator that verifies if the command invoker has
-    administrator permissions in the guild.
-    """
-    async def predicate(ctx: Context):
-        if ctx.author.guild_permissions.administrator:
-            return True
-        else:
-            await ctx.send(f"Sorry, {ctx.author.mention}, you must be an administrator to use this command.")
-            return False
-    return check(predicate)
 
 
 class App(Bot):
@@ -24,6 +11,7 @@ class App(Bot):
         print(f"Logged in as {self.user} (ID: {self.user.id})")
         print("=" * 30)
         await self.add_cog(GameCommands(self))
+        await self.add_cog(CountryCommands(self))
 
 
 def main() -> None:

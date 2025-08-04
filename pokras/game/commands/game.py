@@ -4,7 +4,7 @@ from PIL import Image
 from discord import File
 from discord.ext.commands import Cog, command, Context
 
-from game.commands.checks import is_admin
+from game.commands.checks import is_admin, has_active_game, has_no_active_games
 from config import DataConfig
 from game.queries.create_game import create_game
 from game.queries.get_game import get_games_by_channel_id, get_active_game_by_channel_id, get_game_by_id
@@ -28,40 +28,32 @@ class GameCommands(Cog):
 
     @command()
     @is_admin()
+    @has_no_active_games()
     async def create_game(self, ctx: Context):
         """
         Создаёт новую игру в текущем канале
         """
         channel_id = ctx.channel.id
-        game = get_active_game_by_channel_id(channel_id)
-        if game:
-            response = GameResponses.active_game_already_exists(game)
-            await ctx.send(response)
-            return
-
         game = create_game(channel_id)
         response = GameResponses.game_created(game)
         await ctx.send(response)
 
     @command()
     @is_admin()
+    @has_active_game()
     async def stop_game(self, ctx: Context):
         """
         Останавливает активную игру в текущем канале
         """
         channel_id = ctx.channel.id
         game = get_active_game_by_channel_id(channel_id)
-        if not game:
-            response = GameResponses.no_active_games()
-            await ctx.send(response)
-            return
-
         set_game_inactive(game.id)
         response = GameResponses.game_stopped(game)
         await ctx.send(response)
 
     @command()
     @is_admin()
+    @has_no_active_games()
     async def start_game(self, ctx: Context, game_id: int | None):
         """
         Возобновляет остановленную игру в текущем канале
@@ -71,12 +63,6 @@ class GameCommands(Cog):
         """
         if not game_id:
             response = GameResponses.missing_game_id()
-            await ctx.send(response)
-            return
-
-        active_game = get_active_game_by_channel_id(ctx.channel.id)
-        if active_game:
-            response = GameResponses.active_game_already_exists(active_game)
             await ctx.send(response)
             return
 
