@@ -1,6 +1,9 @@
-from discord import Intents, Client, Message
+from io import BytesIO
 
-from config import BotConfig, ConnectionConfig
+from PIL import Image
+from discord import Intents, Client, Message, File
+
+from config import BotConfig, ConnectionConfig, DataConfig
 
 
 class App(Client):
@@ -31,11 +34,25 @@ class App(Client):
             await channel.send(f"<@{author.id}> Pong!")
             return
 
-        if content.startswith(f"<@{self.user.id}> !help"):
-            await channel.send(f"<@{author.id}> Available commands:\n!hello\n!ping")
+        if content.startswith(f"<@{self.user.id}> !map"):
+            map_image = Image.open(DataConfig.RESOURCES / "map.png")
+            with BytesIO() as image_binary:
+                map_image.save(image_binary, 'PNG')
+                image_binary.seek(0)
+                map_image = File(fp=image_binary, filename="map.png")
+                await channel.send(f"<@{author.id}>", file=map_image)
             return
 
-        await channel.send(f"<@{author.id}> try !help command")
+        if content.startswith(f"<@{self.user.id}> !help"):
+            await channel.send(
+                f"<@{author.id}> Available commands:\n"
+                f"`!hello`\n"
+                f"`!ping`\n"
+                f"`!map`\n"
+            )
+            return
+
+        await channel.send(f"<@{author.id}> try `!help` command")
 
 
 def main() -> None:

@@ -1,4 +1,5 @@
 from os import getenv
+from pathlib import Path
 
 from dotenv import load_dotenv, find_dotenv
 
@@ -19,3 +20,8 @@ class BotConfig:
 class ConnectionConfig:
     USE_PROXY = _getenv_bool("USE_PROXY")
     PROXY_URL = getenv("PROXY_URL", None) if USE_PROXY else None
+
+
+class DataConfig:
+    BASE_PATH = getenv("BASE_PATH", Path(__file__).parent.parent)
+    RESOURCES = BASE_PATH / "resources"
