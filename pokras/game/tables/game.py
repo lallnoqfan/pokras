@@ -3,7 +3,7 @@ from typing import List
 from sqlalchemy import Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from pokras.game.tables.base import Base
+from db.base import Base
 
 
 class Game(Base):
