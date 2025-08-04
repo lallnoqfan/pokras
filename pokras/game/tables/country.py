@@ -23,6 +23,9 @@ class Country(Base):
 
     game: Mapped["Game"] = relationship(back_populates="countries")
 
+    # creator_id: int [not null]
+    creator_id: Mapped[int] = mapped_column(nullable=False)
+
     tiles: Mapped[List["Tile"]] = relationship(
         back_populates="owner",
         cascade="all, delete-orphan",
