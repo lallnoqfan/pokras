@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "pokras"
+version = "0.1.0"
+description = ""
+authors = [""]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+discord-py = "^2.5.2"
+dotenv = "^0.9.9"
+sqlalchemy = "^2.0.42"
+
+
+[tool.poetry.group.dev.dependencies]
+websockets = "^15.0.1"
+aiohttp = "^3.12.15"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

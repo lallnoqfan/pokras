@@ -1,0 +1,14 @@
+## Git
+.git
+
+## Environment
+venv
+.venv
+.idea
+*.env
+
+## Database
+*.sqlite
+
+## Logs
+*.log
