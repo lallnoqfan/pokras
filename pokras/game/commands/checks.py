@@ -12,9 +12,11 @@ def is_admin():
     async def predicate(ctx: Context):
         if ctx.author.guild_permissions.administrator:
             return True
-        else:
+
+        if ctx.invoked_with == ctx.command.name:
             await ctx.send(f"Sorry, {ctx.author.mention}, you must be an administrator to use this command.")
-            return False
+        return False
+
     return check(predicate)
 
 
@@ -26,9 +28,11 @@ def has_active_game():
         game = get_active_game_by_channel_id(ctx.channel.id)
         if game:
             return True
-        else:
+
+        if ctx.invoked_with == ctx.command.name:
             await ctx.send(GameResponses.no_active_games())
-            return False
+        return False
+
     return check(predicate)
 
 
@@ -40,7 +44,9 @@ def has_no_active_games():
         game = get_active_game_by_channel_id(ctx.channel.id)
         if not game:
             return True
-        else:
+
+        if ctx.invoked_with == ctx.command.name:
             await ctx.send(GameResponses.active_game_already_exists(game))
-            return False
+        return False
+
     return check(predicate)
