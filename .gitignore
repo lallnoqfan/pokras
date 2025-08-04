@@ -7,6 +7,11 @@ venv
 .idea
 *.env
 
+## Python
+*.pyc
+__pycache__
+.mypy_cache
+
 ## Database
 *.sqlite
 
