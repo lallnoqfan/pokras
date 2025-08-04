@@ -3,11 +3,11 @@ from typing import List
 from sqlalchemy import String, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from db.base import Base
+from pokras.db.base import Base
 
 
-class Player(Base):
-    __tablename__ = "player"
+class Country(Base):
+    __tablename__ = "country"
 
     # id: int [pk, increment]
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
@@ -21,7 +21,7 @@ class Player(Base):
     # game_id: int [ref: > game.game.id, not null]
     game_id: Mapped[int] = mapped_column(ForeignKey("game.id"), nullable=False)
 
-    game: Mapped["Game"] = relationship(back_populates="players")
+    game: Mapped["Game"] = relationship(back_populates="countries")
 
     tiles: Mapped[List["Tile"]] = relationship(
         back_populates="owner",
@@ -29,4 +29,4 @@ class Player(Base):
     )
 
     def __repr__(self):
-        return f"Player(id={self.id}, game_id={self.game_id}, name='{self.name}', color='{self.color}')"
+        return f"Country(id={self.id}, game_id={self.game_id}, name='{self.name}', color='{self.color}')"

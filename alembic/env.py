@@ -5,7 +5,9 @@ from sqlalchemy import pool
 
 from alembic import context
 
-from pokras.game.tables import Base
+from pokras.db.base import Base
+
+from pokras.game.tables import *
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

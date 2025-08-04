@@ -1,3 +1,3 @@
 from .game import Game
-from .player import Player
+from .country import Country
 from .tile import Tile

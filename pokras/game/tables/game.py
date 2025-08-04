@@ -3,7 +3,7 @@ from typing import List
 from sqlalchemy import Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from db.base import Base
+from pokras.db.base import Base
 
 
 class Game(Base):
@@ -18,15 +18,13 @@ class Game(Base):
     # is_active: bool [default: false]
     is_active: Mapped[bool] = mapped_column(Boolean, default=False)
 
-    # Define the relationships to other tables.
-    # The `back_populates` links the relationship on both sides.
-    players: Mapped[List["Player"]] = relationship(
+    countries: Mapped[List["Country"]] = relationship(
         back_populates="game",
-        cascade="all, delete-orphan",  # Deletes players if the game is deleted
+        cascade="all, delete-orphan",
     )
     tiles: Mapped[List["Tile"]] = relationship(
         back_populates="game",
-        cascade="all, delete-orphan",  # Deletes tiles if the game is deleted
+        cascade="all, delete-orphan",
     )
 
     def __repr__(self):
