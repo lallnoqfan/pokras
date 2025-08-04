@@ -6,7 +6,11 @@ from aiohttp import ClientSession, ClientError
 from config import ConnectionConfig
 
 
-async def test_proxy():
+async def test_http_proxy() -> None:
+    """
+    Проверка http соединения через прокси.
+    Йеп, ai generated.
+    """
     test_url = "https://api.sampleapis.com/coffee/hot"
     proxy_url = ConnectionConfig.PROXY_URL
 

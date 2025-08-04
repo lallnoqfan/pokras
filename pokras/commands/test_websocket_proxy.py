@@ -7,6 +7,10 @@ from config import ConnectionConfig
 
 
 async def test_websocket_proxy():
+    """
+    Проверка ws соединения через прокси.
+    Йеп, ai generated.
+    """
     wss_server_url = "wss://echo.websocket.events"
     proxy_url = ConnectionConfig.PROXY_URL
 
