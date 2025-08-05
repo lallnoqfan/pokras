@@ -1,4 +1,5 @@
 from game.tables import Country
+from game.utils.tags import Tags as T
 
 
 class CountryResponses:
@@ -7,41 +8,46 @@ class CountryResponses:
 
     @staticmethod
     def missing_name() -> str:
-        return "country name is required"
+        return T.spoiler("country name is required")
 
     @staticmethod
     def missing_new_name() -> str:
-        return "new country name is required"
+        return T.spoiler("new country name is required")
 
     @staticmethod
     def missing_color() -> str:
-        return "country color is required"
+        return T.spoiler("country color is required")
 
     @staticmethod
     def missing_new_color() -> str:
-        return "new country color is required"
+        return T.spoiler("new country color is required")
 
     # ========= FAILURE =========
 
     @staticmethod
+    def too_long_name() -> str:
+        # hopefully one day... # todo: fix hardcode
+        return T.spoiler("max. length for country name is 50 symbols")
+
+    @staticmethod
     def country_not_found(country_name: str) -> str:
-        return f"country \"{country_name}\" not found"
+        return T.spoiler(f"country \"{country_name}\" not found")
 
     @staticmethod
     def color_already_exists(country: Country) -> str:
-        return f"country with this color already exists: {country}"
+        return T.spoiler(f"country with this color already exists: {country}")
 
     @staticmethod
     def name_already_exists(country: Country) -> str:
-        return f"country with this name already exists: {country}"
+        return T.spoiler(f"country with this name already exists: {country}")
 
     @staticmethod
     def new_name_already_exists(country: Country) -> str:
-        return f"country with this new name already exists: {country}"
+        return T.spoiler(f"country with this new name already exists: {country}")
 
     @staticmethod
     def not_creator(country: Country) -> str:
-        return f"you are not the creator of this country: {country}"
+        return T.spoiler(f"you are not the creator of this country: {country}")
 
     # ========= SUCCESS =========
 
