@@ -72,6 +72,11 @@ class GameCommands(Cog):
             await ctx.send(response)
             return
 
+        if game.channel != ctx.channel.id:
+            response = GameResponses.wrong_channel()
+            await ctx.send(response)
+            return
+
         set_game_active(game.id)
         response = GameResponses.game_started(game)
         await ctx.send(response)

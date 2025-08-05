@@ -46,3 +46,7 @@ class GameResponses:
     @staticmethod
     def game_stopped(game: Game) -> str:
         return f"game stopped: {game}"
+
+    @staticmethod
+    def wrong_channel() -> str:
+        return "this game not set for this channel"
