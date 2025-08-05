@@ -46,6 +46,16 @@ class CountryResponses:
     # ========= SUCCESS =========
 
     @staticmethod
+    def list_countries(countries: list[Country]) -> str:
+        if not countries:
+            return "no countries found"
+
+        response = "countries:\n"
+        for country in countries:
+            response += f"- {country}\n"
+        return response
+
+    @staticmethod
     def country_created(country: Country) -> str:
         return f"country created: {country}"
 

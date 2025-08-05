@@ -2,7 +2,7 @@ from discord.ext.commands import Cog, command, Context
 
 from game.commands.checks import has_active_game
 from game.queries.create_country import create_country
-from game.queries.get_country import get_country_by_color, get_country_by_name
+from game.queries.get_country import get_country_by_color, get_country_by_name, get_countries_by_game_id
 from game.queries.get_game import get_active_game_by_channel_id
 from game.queries.update_country import set_country_name, set_country_color
 from game.responses.country import CountryResponses
@@ -79,7 +79,7 @@ class CountryCommands(Cog):
 
         country = get_country_by_name(game.id, old_name)
         if not country:
-            response = CountryResponses.country_not_found()
+            response = CountryResponses.country_not_found(old_name)
             await ctx.send(response)
             return
 
@@ -115,7 +115,7 @@ class CountryCommands(Cog):
         game = get_active_game_by_channel_id(ctx.channel.id)
         country = get_country_by_name(game.id, country_name)
         if not country:
-            response = CountryResponses.country_not_found()
+            response = CountryResponses.country_not_found(country_name)
             await ctx.send(response)
             return
 
@@ -126,4 +126,15 @@ class CountryCommands(Cog):
 
         set_country_color(game.id, country.id, new_color)
         response = CountryResponses.color_changed(country)
+        await ctx.send(response)
+
+    @command()
+    @has_active_game()
+    async def list_countries(self, ctx: Context):
+        """
+        Возвращает список стран в активной игре
+        """
+        game = get_active_game_by_channel_id(ctx.channel.id)
+        countries = get_countries_by_game_id(game.id)
+        response = CountryResponses.list_countries(countries)
         await ctx.send(response)
