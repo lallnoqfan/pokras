@@ -20,7 +20,7 @@ class CountryCommands(Cog):
 
         Args:
             name: Название новой страны
-            color: Цвет новой страны
+            color: Цвет новой страны в hex формате (e.g. #ff0000 или #FF0000)
         """
         if not name:
             response = CountryResponses.missing_name()

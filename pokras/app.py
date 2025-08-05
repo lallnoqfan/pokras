@@ -1,9 +1,10 @@
 from discord import Intents
 from discord.ext.commands import Bot
 
+from config import BotConfig, ConnectionConfig
 from game.commands.country import CountryCommands
 from game.commands.game import GameCommands
-from config import BotConfig, ConnectionConfig
+from game.commands.roll import RollCommands
 
 
 class App(Bot):
@@ -12,6 +13,7 @@ class App(Bot):
         print("=" * 30)
         await self.add_cog(GameCommands(self))
         await self.add_cog(CountryCommands(self))
+        await self.add_cog(RollCommands(self))
 
 
 def main() -> None:
