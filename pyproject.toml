@@ -12,6 +12,7 @@ dotenv = "^0.9.9"
 sqlalchemy = "^2.0.42"
 pillow = "^11.3.0"
 alembic = "^1.16.4"
+webcolors = "^24.11.1"
 
 
 [tool.poetry.group.dev.dependencies]

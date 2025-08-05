@@ -22,9 +22,14 @@ class ConnectionConfig:
     PROXY_URL = getenv("PROXY_URL", None) if USE_PROXY else None
 
 
-class DataConfig:
-    BASE_PATH = getenv("BASE_PATH", Path(__file__).parent.parent)
-    RESOURCES = BASE_PATH / "resources"
+class Paths:
+    BASE = getenv("BASE_PATH", Path(__file__).parent.parent)
+    RESOURCES = BASE / "resources"
+
+    MAP = RESOURCES / "map.png"
+    TILES_DATA = RESOURCES / "tiles_data.json"
+    RULES = RESOURCES / "rules.txt"
+    FONT = RESOURCES / "CodenameCoderFree4F-Bold.ttf"
 
 
 class AppConfig:

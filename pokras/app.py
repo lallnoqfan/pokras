@@ -5,7 +5,7 @@ from config import BotConfig, ConnectionConfig
 from game.commands.country import CountryCommands
 from game.commands.game import GameCommands
 from game.commands.roll import RollCommands
-from game.commands.test import TestCommands
+from game.commands.ping import TestCommands
 
 
 class App(Bot):

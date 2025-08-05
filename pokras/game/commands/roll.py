@@ -1,17 +1,16 @@
 from io import BytesIO
 
-from PIL import Image
 from discord import File
 from discord.ext.commands import Cog, command, Context
 
-from config import DataConfig
 from game.commands.checks import has_active_game
-from game.queries.get_country import get_country_by_name
+from game.queries.get_country import get_country_by_name, get_countries_by_game_id
 from game.queries.get_game import get_active_game_by_channel_id
 from game.responses.country import CountryResponses
 from game.responses.roll import RollResponses
 from game.utils.parser import CommentParser
 from game.utils.randomizer import dices
+from game.utils.resources import ResourcesHandler, CountryModel
 
 
 class RollCommands(Cog):
@@ -62,28 +61,63 @@ class RollCommands(Cog):
         prompt = " ".join(prompt)
 
         if CommentParser.is_roll_against(prompt):
-            response += "ролл против"
+            response += "ролл против"  # todo: add actual logic
             await ctx.reply(response)
             return
 
         if CommentParser.is_roll_on_neutral(prompt):
-            response += "ролл на расширение"
+            response += "ролл на расширение"  # todo: add actual logic
             await ctx.reply(response)
             return
 
         tiles = CommentParser.process_tiles(prompt)
-        response += f"\n({' '.join(tiles)})"
+        response += f"\n({' '.join(tiles)})"  # todo: add actual logic
 
         await ctx.reply(response)
 
     @command()
     async def map(self, ctx: Context):
         """
-        Постит карту (пустую (пока что (?)))
+        Постит карту активной игры
         """
-        map_image = Image.open(DataConfig.RESOURCES / "map.png").convert('RGB')
+        # todo: take game id as optional argument so it can be used not just for active game
+        game = get_active_game_by_channel_id(ctx.channel.id)
+        countries = get_countries_by_game_id(game.id)
+        countries = [CountryModel(
+            name=country.name,
+            hex_color=country.color,
+            tiles=[tile.code for tile in country.tiles],
+        ) for country in countries]
+
+        map_image = ResourcesHandler.draw_map(countries)
+
         with BytesIO() as image_binary:
             map_image.save(image_binary, 'PNG')
             image_binary.seek(0)
             map_image = File(fp=image_binary, filename="map.png")
-        await ctx.send(f"{ctx.author.mention}", file=map_image)
+
+        await ctx.reply(file=map_image)
+
+    @command()
+    @has_active_game()
+    async def legend(self, ctx: Context):
+        """
+        Постит легенду стран в активной игре
+        """
+        # todo: take game id as optional argument so it can be used not just for active game
+        game = get_active_game_by_channel_id(ctx.channel.id)
+        countries = get_countries_by_game_id(game.id)
+        countries = [CountryModel(
+                name=country.name,
+                hex_color=country.color,
+                tiles=[tile.code for tile in country.tiles],
+            ) for country in countries]
+
+        countries_image = ResourcesHandler.draw_countries(countries)
+
+        with BytesIO() as image_binary:
+            countries_image.save(image_binary, 'PNG')
+            image_binary.seek(0)
+            countries_image = File(fp=image_binary, filename="countries.png")
+
+        await ctx.reply(file=countries_image)
