@@ -1,13 +1,18 @@
 from re import compile, match, search, findall, IGNORECASE
-from typing import List, Tuple
 
 
 class CommentParser:
+    _against_keywords = ("против", "against")
+    _expansion_keywords = ("расширение", "expand")
+
     @staticmethod
     def _cyrillic_to_roman(s: str) -> str:
-        cyrillic = {
-            'а': 'a',
-            'б': 'b',
+        """
+        Converts cyrillic letters to corresponding roman counterparts.
+        """
+        cyrillic_to_roman = {  # this dict is kinda incomplete
+            'а': 'a',          # works fine with so called "classic" russian map
+            'б': 'b',          # but it might require some adjustments for other maps
             'в': 'b',
             'с': 'c',
             'ц': 'c',
@@ -15,44 +20,32 @@ class CommentParser:
             'е': 'e',
             'ф': 'f',
         }
-        for key in cyrillic:
-            s = s.replace(key, cyrillic[key])
+        for cyrillic, roman in cyrillic_to_roman.items():
+            s = s.replace(cyrillic, roman)
         return s
 
     @classmethod
-    def parse_roll_base(cls, comment: str) -> Tuple[str, str] | None:
+    def parse_color(cls, color_like: str) -> str | None:
         pattern = compile(
-            r"(рол{1,10}база|rol{1,10}base)\s*?\n(.+?)\s*?\n#?([a-fA-F0-9]{6})",
+            r"#?([a-f0-9]{6})",
             flags=IGNORECASE,
         )
-        res = search(pattern, comment)
+        color_like = cls._cyrillic_to_roman(color_like.strip().lower())
+        res = search(pattern, color_like)
         if not res:
             return
+        color = f"#{res.group(1)}"
 
-        name = res.group(2)         # "(.+?)"
-        color = f"#{res.group(3)}"  # "#?([a-fA-F0-9]{6})"
-        color = cls._cyrillic_to_roman(color.lower())
-
-        return name, color
+        return color
 
     @classmethod
-    def parse_roll(cls, comment: str) -> Tuple[int, List[str]] | None:
-        pattern = compile(
-            r"(^|\n)>>(\d+?)\s*\n[^\n]*?(rol|рол)[^\n]*?((\d+[a-zа-я]* ?)+)",
-            flags=IGNORECASE,
-        )
-        res = search(pattern, comment)
-        if not res:
-            return
-
-        num = res.group(2)    # >>(\d+?)
-        tiles = res.group(4)  # ((\d+[a-zа-я]* ?)+)
-
-        # tiles string processing
-
-        tiles = tiles.lower()                   # "2B 3Ф" -> "2b 3ф"
+    def process_tiles(cls, tiles: str) -> list[str]:
+        """
+        Tiles list normalization.
+        """
+        tiles = tiles.lower()                  # "2B 3Ф" -> "2b 3ф"
         tiles = cls._cyrillic_to_roman(tiles)  # "2b 3ф" -> "2b 3f"
-        tiles = tiles.split()                   # "2b 3f" -> ["2b", "3f"]
+        tiles = tiles.split()                  # "2b 3f" -> ["2b", "3f"]
 
         # ["1a2b3cd"] -> ["1a", "2b", "3cd"]
         i = 0
@@ -83,38 +76,26 @@ class CommentParser:
                 i += 1
 
         # duplicates clearing
-        result = []
-        [result.append(tile) for tile in tiles if tile not in result]
+        tiles = list(set(tiles))
 
-        return int(num), result
+        return tiles
 
-    @staticmethod
-    def parse_roll_on_neutral(comment: str) -> int | None:
-        pattern = compile(
-            r"(\n|^)>>(\d+?)\s*\n[^\n]*?(rol|рол)[^\n]*?"
-            r"(расширение|expan[ds])",
-            flags=IGNORECASE
-        )
-        r = search(pattern, comment)
-        if not r:
-            return
-        return int(r.group(2))
+    @classmethod
+    def is_roll_on_neutral(cls, comment: str) -> bool:
+        return any(k in comment for k in cls._expansion_keywords)
 
-    @staticmethod
-    def parse_roll_against(comment: str) -> Tuple[int, str] | None:
-        pattern = compile(
-            r"(\n|^)>>(\d+?)\s*\n[^\n]*?(rol|рол)[^\n]*?"
-            r"(против|against) ([а-я ]{1,50})",
-            flags=IGNORECASE
-        )
-        r = search(pattern, comment)
-        if not r:
-            return
+    @classmethod
+    def is_roll_against(cls, comment: str) -> bool:
+        return any(k in comment for k in cls._against_keywords)
 
-        num = int(r.group(2))  # >>(\d+?)
-        name = r.group(5)      # ([а-я ]{1,50})
-
-        return num, name
+    @classmethod
+    def get_against_roll_target(cls, comment: str) -> str:
+        for k in cls._against_keywords:
+            if k in comment:
+                comment = comment.replace(k, "", __count=1)
+                break
+        comment = comment.strip()
+        return comment
 
     @staticmethod
     def get_roll_value(num: int | str) -> int:
