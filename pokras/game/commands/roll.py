@@ -1,25 +1,17 @@
-from random import seed, randint
+from io import BytesIO
 
+from PIL import Image
+from discord import File
 from discord.ext.commands import Cog, command, Context
 
+from config import DataConfig
 from game.commands.checks import has_active_game
 from game.queries.get_country import get_country_by_name
 from game.queries.get_game import get_active_game_by_channel_id
 from game.responses.country import CountryResponses
 from game.responses.roll import RollResponses
-from game.text.parser import CommentParser
-
-
-def dices(seed_value: int, count: int = 5) -> list[int]:
-    """
-    Generates `count` number of random numbers between 0 and 9 based on provided seed.
-
-    Args:
-        seed_value: seed value
-        count: number of random numbers to generate
-    """
-    seed(seed_value)
-    return [randint(0, 9) for _ in range(count)]
+from game.utils.parser import CommentParser
+from game.utils.randomizer import dices
 
 
 class RollCommands(Cog):
@@ -83,3 +75,15 @@ class RollCommands(Cog):
         response += f"\n({' '.join(tiles)})"
 
         await ctx.reply(response)
+
+    @command()
+    async def map(self, ctx: Context):
+        """
+        Постит карту (пустую (пока что (?)))
+        """
+        map_image = Image.open(DataConfig.RESOURCES / "map.png").convert('RGB')
+        with BytesIO() as image_binary:
+            map_image.save(image_binary, 'PNG')
+            image_binary.seek(0)
+            map_image = File(fp=image_binary, filename="map.png")
+        await ctx.send(f"{ctx.author.mention}", file=map_image)

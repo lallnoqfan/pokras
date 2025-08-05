@@ -110,6 +110,7 @@ class CommentParser:
             compile(r"^.*?((\d)\2(?!\2))((\d)(\4{2}))$"): 4,  # 11999 (2+3)
             compile(r"^.*?((\d)\2{2}(?!\2))((\d)(\4))$"): 4,  # 11199 (3+2)
             compile(r"^.*?((\d)\2(?!\2))((\d)(\4))$"):    2,  # 1199  (2+2)
+            # todo: add palis and straights?
         }
 
         num = str(num)

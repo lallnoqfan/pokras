@@ -53,8 +53,8 @@ class CountryCommands(Cog):
     @has_active_game()
     async def change_name(self, ctx: Context, old_name: str | None, new_name: str | None):
         """
-        Переименовывает страну в активной игре.
-        Только создатель страны может переименовывать её.
+        Переименовывает страну в активной игре
+        Только создатель страны может переименовывать её
 
         Args:
             old_name: Старое название страны
@@ -98,7 +98,7 @@ class CountryCommands(Cog):
     @has_active_game()
     async def change_color(self, ctx: Context, country_name: str | None, new_color: str | None):
         """
-        Изменяет цвет страны в активной игре.
+        Изменяет цвет страны в активной игре
 
         Args:
             country_name: Название страны

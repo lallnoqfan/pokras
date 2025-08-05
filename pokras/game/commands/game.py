@@ -1,11 +1,6 @@
-from io import BytesIO
-
-from PIL import Image
-from discord import File
 from discord.ext.commands import Cog, command, Context
 
 from game.commands.checks import has_active_game, has_no_active_games, is_admin_or_dm
-from config import DataConfig
 from game.queries.create_game import create_game
 from game.queries.get_game import get_games_by_channel_id, get_active_game_by_channel_id, get_game_by_id
 from game.queries.update_game import set_game_inactive, set_game_active
@@ -80,15 +75,3 @@ class GameCommands(Cog):
         set_game_active(game.id)
         response = GameResponses.game_started(game)
         await ctx.send(response)
-
-    @command()
-    async def map(self, ctx: Context):
-        """
-        Постит карту (пустую (пока что (?)))
-        """
-        map_image = Image.open(DataConfig.RESOURCES / "map.png").convert('RGB')
-        with BytesIO() as image_binary:
-            map_image.save(image_binary, 'PNG')
-            image_binary.seek(0)
-            map_image = File(fp=image_binary, filename="map.png")
-        await ctx.send(f"{ctx.author.mention}", file=map_image)
