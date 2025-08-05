@@ -27,6 +27,8 @@ class CountryResponses:
     @staticmethod
     def too_long_name() -> str:
         # hopefully one day... # todo: fix hardcode
+        # todo: check the name length before country creation
+        #       if it's too long, notify user
         return T.spoiler("max. length for country name is 50 symbols")
 
     @staticmethod

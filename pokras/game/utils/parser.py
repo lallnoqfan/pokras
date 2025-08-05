@@ -77,6 +77,9 @@ class CommentParser:
 
         # duplicates clearing
         tiles = list(set(tiles))
+        tiles.sort()
+        # todo: it would be great if we could preserve initial order of tiles tiles as it is in user's input
+        #       for now, after parsing, initial order is totally lost, so should probably be fixed
 
         return tiles
 
@@ -107,11 +110,21 @@ class CommentParser:
             5: 8,
         }
         specials = {
-            compile(r"^.*?((\d)\2(?!\2))((\d)(\4{2}))$"): 4,  # 11999 (2+3)
-            compile(r"^.*?((\d)\2{2}(?!\2))((\d)(\4))$"): 4,  # 11199 (3+2)
-            compile(r"^.*?((\d)\2(?!\2))((\d)(\4))$"):    2,  # 1199  (2+2)
+            compile(r"^.*?((\d)\2(?!\2)(\d)\3\3)$"):   4,  # 11999 double-triple
+            compile(r"^.*?((\d)\2\2(?!\2)(\d)\3)$"):   4,  # 11199 triple-double
+            compile(r"^.*?((\d)\2(?!\2)(\d)\3)$"):     2,  # 1199  double-double
+            compile(r"^.*?((\d)(?!\2)\d\2)$"):         0,  # 191   3d pali
+            compile(r"^.*?((\d)(?!\2)(\d)\3\2)$"):     0,  # 1991  4d pali
+            compile(r"^.*?((\d)(?!\2\2)(\d)\d\3\2)$"): 0,  # 19191 5d pali
             # todo: add palis and straights?
+            #       then make it possible to adjust values in runtime
+            #       ...
+            # todo?: man it would be sooo damn cool to have one really pretty casino style message
+            #        when you hit one of this things
         }
+
+        # todo: for now, roll value is chosen based on order of gets in this two dicts above
+        #       need to fix it so the greatest one among fitted patterns is chosen
 
         num = str(num)
         for pattern in specials:
