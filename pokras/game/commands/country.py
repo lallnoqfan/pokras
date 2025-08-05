@@ -83,7 +83,9 @@ class CountryCommands(Cog):
             await ctx.send(response)
             return
 
-        if country.creator_id != ctx.author.id:
+        if (country.creator_id != ctx.author.id
+                and ctx.guild is not None
+                and not ctx.author.guild_permissions.administrator):
             response = CountryResponses.not_creator(country)
             await ctx.send(response)
             return
@@ -119,7 +121,9 @@ class CountryCommands(Cog):
             await ctx.send(response)
             return
 
-        if country.creator_id != ctx.author.id:
+        if (country.creator_id != ctx.author.id
+                and ctx.guild is not None
+                and not ctx.author.guild_permissions.administrator):
             response = CountryResponses.not_creator(country)
             await ctx.send(response)
             return
