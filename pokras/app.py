@@ -5,6 +5,7 @@ from config import BotConfig, ConnectionConfig
 from game.commands.country import CountryCommands
 from game.commands.game import GameCommands
 from game.commands.roll import RollCommands
+from game.commands.test import TestCommands
 
 
 class App(Bot):
@@ -14,6 +15,7 @@ class App(Bot):
         await self.add_cog(GameCommands(self))
         await self.add_cog(CountryCommands(self))
         await self.add_cog(RollCommands(self))
+        await self.add_cog(TestCommands(self))
 
 
 def main() -> None:
