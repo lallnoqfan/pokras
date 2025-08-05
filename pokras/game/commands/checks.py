@@ -20,6 +20,18 @@ def is_admin():
     return check(predicate)
 
 
+def is_admin_or_dm():
+    async def predicate(ctx: Context):
+        if ctx.guild is None or ctx.author.guild_permissions.administrator:
+            return True
+
+        if ctx.invoked_with == ctx.command.name:
+            await ctx.send(f"Sorry, {ctx.author.mention}, you must be an administrator to use this command.")
+        return False
+
+    return check(predicate)
+
+
 def has_active_game():
     """
     Декоратор-чек, проверяющий наличие активных игр в текущем канале.

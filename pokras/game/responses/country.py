@@ -24,8 +24,8 @@ class CountryResponses:
     # ========= FAILURE =========
 
     @staticmethod
-    def country_not_found() -> str:
-        return "country not found"
+    def country_not_found(country_name: str) -> str:
+        return f"country \"{country_name}\" not found"
 
     @staticmethod
     def color_already_exists(country: Country) -> str:

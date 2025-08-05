@@ -4,7 +4,7 @@ from PIL import Image
 from discord import File
 from discord.ext.commands import Cog, command, Context
 
-from game.commands.checks import is_admin, has_active_game, has_no_active_games
+from game.commands.checks import has_active_game, has_no_active_games, is_admin_or_dm
 from config import DataConfig
 from game.queries.create_game import create_game
 from game.queries.get_game import get_games_by_channel_id, get_active_game_by_channel_id, get_game_by_id
@@ -27,7 +27,7 @@ class GameCommands(Cog):
         await ctx.send(response)
 
     @command()
-    @is_admin()
+    @is_admin_or_dm()
     @has_no_active_games()
     async def create_game(self, ctx: Context):
         """
@@ -39,7 +39,7 @@ class GameCommands(Cog):
         await ctx.send(response)
 
     @command()
-    @is_admin()
+    @is_admin_or_dm()
     @has_active_game()
     async def stop_game(self, ctx: Context):
         """
@@ -52,7 +52,7 @@ class GameCommands(Cog):
         await ctx.send(response)
 
     @command()
-    @is_admin()
+    @is_admin_or_dm()
     @has_no_active_games()
     async def start_game(self, ctx: Context, game_id: int | None):
         """
