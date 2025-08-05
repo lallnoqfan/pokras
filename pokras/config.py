@@ -25,3 +25,7 @@ class ConnectionConfig:
 class DataConfig:
     BASE_PATH = getenv("BASE_PATH", Path(__file__).parent.parent)
     RESOURCES = BASE_PATH / "resources"
+
+
+class AppConfig:
+    DEBUG = _getenv_bool("DEBUG")
