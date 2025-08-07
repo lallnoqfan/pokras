@@ -1,4 +1,4 @@
-from re import compile, match, search, findall, IGNORECASE
+from re import compile, match, search, findall
 
 
 class CommentParser:
@@ -26,17 +26,16 @@ class CommentParser:
 
     @classmethod
     def parse_color(cls, color_like: str) -> str | None:
-        pattern = compile(
-            r"#?([a-f0-9]{6})",
-            flags=IGNORECASE,
-        )
+        # maybe should add some tests. todo?
         color_like = cls._cyrillic_to_roman(color_like.strip().lower())
+        pattern = compile(r"#?([a-f0-9]{6}|[a-f0-9]{3})")
         res = search(pattern, color_like)
         if not res:
-            return
-        color = f"#{res.group(1)}"
-
-        return color
+            return None
+        hex_code = res.group(1)
+        if len(hex_code) == 3:
+            hex_code = "".join(c * 2 for c in hex_code)
+        return f"#{hex_code}"
 
     @classmethod
     def process_tiles(cls, tiles: str) -> list[str]:

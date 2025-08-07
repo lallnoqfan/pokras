@@ -6,6 +6,7 @@ from game.queries.get_country import get_country_by_color, get_country_by_name, 
 from game.queries.get_game import get_active_game_by_channel_id
 from game.queries.update_country import set_country_name, set_country_color
 from game.responses.country import CountryResponses
+from game.utils.parser import CommentParser
 
 
 class CountryCommands(Cog):
@@ -31,6 +32,12 @@ class CountryCommands(Cog):
         if not color:
             response = CountryResponses.missing_color()
             await ctx.send(response)
+            return
+
+        color = CommentParser.parse_color(color)
+        if not color:
+            response = CountryResponses.invalid_color(color)
+            await ctx.reply(response)
             return
 
         game = get_active_game_by_channel_id(ctx.channel.id)
@@ -115,6 +122,12 @@ class CountryCommands(Cog):
         if not new_color:
             response = CountryResponses.missing_new_color()
             await ctx.send(response)
+            return
+
+        new_color = CommentParser.parse_color(new_color)
+        if not new_color:
+            response = CountryResponses.invalid_color(new_color)
+            await ctx.reply(response)
             return
 
         game = get_active_game_by_channel_id(ctx.channel.id)

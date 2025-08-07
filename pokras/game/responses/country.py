@@ -4,7 +4,7 @@ from game.utils.tags import Tags as T
 
 class CountryResponses:
 
-    # ========= MISSING ARGUMENTS =========
+    # ========= INCORRECT ARGUMENTS =========
 
     @staticmethod
     def missing_name() -> str:
@@ -21,6 +21,10 @@ class CountryResponses:
     @staticmethod
     def missing_new_color() -> str:
         return T.spoiler("new country color is required")
+
+    @staticmethod
+    def invalid_color(hex_color: str) -> str:
+        return T.spoiler(f"\"{hex_color}\" is not a valid color")
 
     # ========= FAILURE =========
 
