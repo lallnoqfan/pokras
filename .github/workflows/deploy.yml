@@ -49,5 +49,5 @@ jobs:
           PYTHON=3.11;
           SECRETS='$SECRETS';
           CLONE_TOKEN=$CLONE_TOKEN;
-          BRANCH_NAME=deploy;
+          BRANCH_NAME=main;
           eval $(cat deploy/deploy.sh)"

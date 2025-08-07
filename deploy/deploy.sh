@@ -51,7 +51,14 @@ echo -e "Deploy ${PROJECT_NAME} from branch ${BRANCH_NAME}"
 # Acquiring repository data
 echo -e "Clone repository"
 cd /srv || exit 1
-GIT_REPOSITORY="https://${CLONE_TOKEN}@github.com/${PROJECT_OWNER}/${PROJECT_NAME}.git"
+if [[ -n "$CLONE_TOKEN" ]]; then
+  echo -e "Using token to clone repository"
+  GIT_REPOSITORY="https://${CLONE_TOKEN}@github.com/${PROJECT_OWNER}/${PROJECT_NAME}.git"
+else
+  echo -e "Using public link to clone repository"
+  GIT_REPOSITORY="https://github.com/${PROJECT_OWNER}/${PROJECT_NAME}.git"
+fi
+
 if ! git clone --branch $BRANCH_NAME "$GIT_REPOSITORY"; then
    cd "$PROJECT_NAME" || exit 1
    git pull origin $BRANCH_NAME
