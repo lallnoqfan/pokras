@@ -1,0 +1,14 @@
+[Unit]
+Description="pokras"
+After=network.target
+PartOf=pokras.target
+
+[Service]
+User=pokras
+Group=pokras
+Restart=always
+ExecStart=/srv/.venvs/pokras/bin/python3.11 /srv/pokras/pokras/app.py
+StandardOutput=append:/var/log/pokras/systemd/pokras/pokras.log
+
+[Install]
+WantedBy=multi-user.target

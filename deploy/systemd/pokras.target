@@ -1,0 +1,7 @@
+[Unit]
+After=network.target
+
+Wants=pokras.service
+
+[Install]
+WantedBy=multi-user.target

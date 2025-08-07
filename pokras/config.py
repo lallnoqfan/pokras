@@ -11,6 +11,10 @@ def _getenv_bool(key: str, default_value: bool = False) -> bool:
     return getenv(key, str(default_value)).lower() in ("1", "true")
 
 
+class AppConfig:
+    DEBUG = _getenv_bool("DEBUG")
+
+
 class BotConfig:
     APP_ID = getenv("APP_ID")
     BOT_TOKEN = getenv("BOT_TOKEN")
@@ -23,14 +27,12 @@ class ConnectionConfig:
 
 
 class Paths:
-    BASE = getenv("BASE_PATH", Path(__file__).parent.parent)
-    RESOURCES = BASE / "resources"
+    BASE = Path(__file__).parent.parent.resolve()
+    PROJECT_ROOT = BASE / "pokras"
+    SQLITE_DB = BASE / "db.sqlite"
 
+    RESOURCES = BASE / "resources"
     MAP = RESOURCES / "map.png"
     TILES_DATA = RESOURCES / "tiles_data.json"
     RULES = RESOURCES / "rules.txt"
     FONT = RESOURCES / "CodenameCoderFree4F-Bold.ttf"
-
-
-class AppConfig:
-    DEBUG = _getenv_bool("DEBUG")

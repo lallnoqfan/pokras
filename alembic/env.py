@@ -1,3 +1,5 @@
+import sys
+
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
@@ -5,9 +7,14 @@ from sqlalchemy import pool
 
 from alembic import context
 
-from pokras.db.base import Base
+from pokras.config import Paths
 
-from pokras.game.tables import *
+sys.path.append(Paths.PROJECT_ROOT.__str__())
+
+from db.base import Base
+from game.tables import *  # noqa: i know i dont use it
+
+# ===========================================================
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

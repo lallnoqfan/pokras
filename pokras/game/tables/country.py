@@ -3,7 +3,7 @@ from typing import List
 from sqlalchemy import String, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from pokras.db.base import Base
+from db.base import Base
 
 
 class Country(Base):
