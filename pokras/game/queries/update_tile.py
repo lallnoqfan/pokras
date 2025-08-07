@@ -9,3 +9,4 @@ def update_tile_owner(game_id: int, tile_code: str, new_owner_id: int) -> None:
             .where(Tile.game_id == game_id, Tile.code == tile_code)
             .values(owner_id=new_owner_id))
     session.execute(stmt)
+    session.commit()
