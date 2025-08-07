@@ -1,6 +1,6 @@
-from discord.ext.commands import Cog, command, Context
+from discord.ext.commands import Cog, command, Context, guild_only
 
-from game.commands.checks import has_active_game, has_no_active_games, is_admin_or_dm
+from game.commands.checks import has_active_game, has_no_active_games, is_admin
 from game.queries.create_game import create_game
 from game.queries.get_game import get_games_by_channel_id, get_active_game_by_channel_id, get_game_by_id
 from game.queries.update_game import set_game_inactive, set_game_active
@@ -12,6 +12,7 @@ class GameCommands(Cog):
         self.bot = bot
 
     @command()
+    @guild_only()
     async def list_games(self, ctx: Context):
         """
         Возвращает список игр для текущего канала
@@ -22,7 +23,8 @@ class GameCommands(Cog):
         await ctx.send(response)
 
     @command()
-    @is_admin_or_dm()
+    @guild_only()
+    @is_admin()
     @has_no_active_games()
     async def create_game(self, ctx: Context):
         """
@@ -34,7 +36,8 @@ class GameCommands(Cog):
         await ctx.send(response)
 
     @command()
-    @is_admin_or_dm()
+    @guild_only()
+    @is_admin()
     @has_active_game()
     async def stop_game(self, ctx: Context):
         """
@@ -47,7 +50,8 @@ class GameCommands(Cog):
         await ctx.send(response)
 
     @command()
-    @is_admin_or_dm()
+    @guild_only()
+    @is_admin()
     @has_no_active_games()
     async def start_game(self, ctx: Context, game_id: int | None):
         """

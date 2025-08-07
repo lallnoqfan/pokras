@@ -10,6 +10,9 @@ def is_admin():
     пользователь правами администратора сервера.
     """
     async def predicate(ctx: Context):
+        if ctx.guild is None:
+            return False
+
         if ctx.author.guild_permissions.administrator:
             return True
 

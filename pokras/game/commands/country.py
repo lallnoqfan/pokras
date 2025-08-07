@@ -1,4 +1,4 @@
-from discord.ext.commands import Cog, command, Context
+from discord.ext.commands import Cog, command, Context, guild_only
 
 from game.commands.checks import has_active_game
 from game.queries.create_country import create_country
@@ -13,6 +13,7 @@ class CountryCommands(Cog):
         self.bot = bot
 
     @command()
+    @guild_only()
     @has_active_game()
     async def create_country(self, ctx: Context, name: str | None, color: str | None):
         """
@@ -50,6 +51,7 @@ class CountryCommands(Cog):
         await ctx.send(response)
 
     @command()
+    @guild_only()
     @has_active_game()
     async def change_name(self, ctx: Context, old_name: str | None, new_name: str | None):
         """
@@ -95,6 +97,7 @@ class CountryCommands(Cog):
         await ctx.send(response)
 
     @command()
+    @guild_only()
     @has_active_game()
     async def change_color(self, ctx: Context, country_name: str | None, new_color: str | None):
         """
@@ -133,6 +136,7 @@ class CountryCommands(Cog):
         await ctx.send(response)
 
     @command()
+    @guild_only()
     @has_active_game()
     async def list_countries(self, ctx: Context):
         """

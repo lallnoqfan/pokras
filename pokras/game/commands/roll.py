@@ -1,4 +1,4 @@
-from discord.ext.commands import Cog, command, Context
+from discord.ext.commands import Cog, command, Context, guild_only
 
 from game.commands.checks import has_active_game
 from game.queries.create_tile import create_tile
@@ -128,6 +128,7 @@ class RollCommands(Cog):
         return roll_value, response
 
     @command()
+    @guild_only()
     @has_active_game()
     async def roll(self, ctx: Context, country_name: str | None, *prompt: str | None):
         """
@@ -192,6 +193,8 @@ class RollCommands(Cog):
         await ctx.reply(response)
 
     @command()
+    @guild_only()
+    @has_active_game()
     async def map(self, ctx: Context):
         """
         Постит карту активной игры
@@ -212,6 +215,7 @@ class RollCommands(Cog):
         await ctx.reply(file=map_file)
 
     @command()
+    @guild_only()
     @has_active_game()
     async def legend(self, ctx: Context):
         """
