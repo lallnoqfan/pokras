@@ -1,6 +1,3 @@
-from io import BytesIO
-
-from discord import File
 from discord.ext.commands import Cog, command, Context
 
 from game.commands.checks import has_active_game
@@ -12,6 +9,7 @@ from game.queries.update_tile import update_tile_owner
 from game.responses.country import CountryResponses
 from game.responses.roll import RollResponses
 from game.tables import Country, Game
+from game.utils.discord import pillow_to_file
 from game.utils.parser import CommentParser
 from game.utils.randomizer import dices
 from game.utils.resources import ResourcesHandler, CountryModel
@@ -209,12 +207,9 @@ class RollCommands(Cog):
 
         map_image = ResourcesHandler.draw_map(countries)
 
-        with BytesIO() as image_binary:
-            map_image.save(image_binary, 'PNG')
-            image_binary.seek(0)
-            map_image = File(fp=image_binary, filename="map.png")
 
-        await ctx.reply(file=map_image)
+        map_file = pillow_to_file(map_image, "map.png")
+        await ctx.reply(file=map_file)
 
     @command()
     @has_active_game()
@@ -232,10 +227,5 @@ class RollCommands(Cog):
             ) for country in countries]
 
         countries_image = ResourcesHandler.draw_countries(countries)
-
-        with BytesIO() as image_binary:
-            countries_image.save(image_binary, 'PNG')
-            image_binary.seek(0)
-            countries_image = File(fp=image_binary, filename="countries.png")
-
-        await ctx.reply(file=countries_image)
+        countries_file = pillow_to_file(countries_image, "countries.png")
+        await ctx.reply(file=countries_file)
