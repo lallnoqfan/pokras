@@ -202,14 +202,18 @@ class RollCommands(Cog):
         # todo: take game id as optional argument so it can be used not just for active game
         game = get_active_game_by_channel_id(ctx.channel.id)
         countries = get_countries_by_game_id(game.id)
-        countries = [CountryModel(
-            name=country.name,
-            hex_color=country.color,
-            tiles=[tile.code for tile in country.tiles],
-        ) for country in countries]
 
-        map_image = ResourcesHandler.draw_map(countries)
+        if countries:
+            countries = [CountryModel(
+                name=country.name,
+                hex_color=country.color,
+                tiles=[tile.code for tile in country.tiles],
+            ) for country in countries]
 
+            map_image = ResourcesHandler.draw_map(countries)
+
+        else:
+            map_image = ResourcesHandler.load_map()
 
         map_file = pillow_to_file(map_image, "map.png")
         await ctx.reply(file=map_file)
@@ -224,6 +228,10 @@ class RollCommands(Cog):
         # todo: take game id as optional argument so it can be used not just for active game
         game = get_active_game_by_channel_id(ctx.channel.id)
         countries = get_countries_by_game_id(game.id)
+        if not countries:
+            await ctx.reply("There are no countries in this game, so... no legend i guess?")
+            return
+
         countries = [CountryModel(
                 name=country.name,
                 hex_color=country.color,
