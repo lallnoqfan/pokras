@@ -27,7 +27,6 @@ jobs:
           SSH_HOST: ${{ secrets.SSH_HOST }}
           SSH_PORT: ${{ secrets.SSH_PORT }}
           SSH_USER: ${{ secrets.SSH_USER }}
-          CLONE_TOKEN: ${{ secrets.CLONE_TOKEN }}
           PROD_SECRETS: ${{ secrets.PROD_SECRETS }}
           PROD_VARS: ${{ vars.PROD_VARS }}
         run: |
@@ -48,6 +47,5 @@ jobs:
           PROJECT_SECOND_NAME=pokras;
           PYTHON=3.11;
           SECRETS='$SECRETS';
-          CLONE_TOKEN=$CLONE_TOKEN;
           BRANCH_NAME=main;
           eval $(cat deploy/deploy.sh)"

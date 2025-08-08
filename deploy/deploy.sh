@@ -6,13 +6,11 @@ ssh-keyscan github.com >> ~/.ssh/known_hosts
 #   PROJECT_OWNER - Project's owner username
 #   PROJECT_NAME - Project's repository name
 #   SECRETS - Project's secrets
-#   PROJECT_REQUIREMENTS - requirements/<file> filename for pip dependencies
 #   PYTHON - Python version
 # Additional parameters
 #   PROJECT_SECRETS_NAME - Project's secrets filename
 #   BRANCH_NAME - Branch name to update from
 #   PROJECT_SECOND_NAME - Source code directory name
-#   PROJECT_DEPLOY_DIR_NAME - Deploy directory name
 
 [[ -n $PYTHON ]] || exit 1
 [[ -n $PROJECT_NAME ]] || exit 1
@@ -35,9 +33,8 @@ APPEND_LOG_DIRS=(
 )
 
 [[ -n $PROJECT_SECRETS_NAME ]] || PROJECT_SECRETS_NAME='secrets'
-[[ -n $BRANCH_NAME ]] || BRANCH_NAME='master'
+[[ -n $BRANCH_NAME ]] || BRANCH_NAME='main'
 [[ -n $PROJECT_SECOND_NAME ]] || PROJECT_SECOND_NAME=$PROJECT_NAME
-[[ -n $PROJECT_REQUIREMENTS ]] || PROJECT_REQUIREMENTS="production"
 
 SOURCE_DIR=$PROJECT_DIR/$PROJECT_SECOND_NAME
 
@@ -93,9 +90,6 @@ grep -qxF "source $PROJECT_VENV_DIR/$PROJECT_SECRETS_NAME" "$PROJECT_VENV_DIR"/b
 echo -e "Set up env"
 source "$PROJECT_VENV_DIR"/bin/activate
 
-
-
-
 # Installing requirements
 echo -e "Install packages"
 pip install wheel
@@ -106,21 +100,15 @@ if ! poetry install --without dev --no-ansi --no-interaction --no-root; then
 fi
 cd ..
 
-
 # Setup directory permissions
 echo -e "Setup permissions"
 chown -R "$PROJECT_NAME":"$PROJECT_NAME" "$PROJECT_DIR" "$PROJECT_VENV_DIR" "$PROJECT_LOG_BASE_DIR"
-
-
-
 
 # Apply migrations
 echo -e "Migrate models"
 if ! alembic upgrade head; then
     exit 1
 fi
-
-
 
 PROJECT_DEPLOY_PATH=$PROJECT_DIR/deploy
 
