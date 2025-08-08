@@ -199,6 +199,55 @@ class RollCommands(Cog):
 
         return roll_value, response
 
+    @staticmethod
+    def _add_tiles_against(roll_value: int, game: Game, country: Country, target: Country) -> tuple[int, list[str]]:
+        # works pretty much in the same way as _add_tiles_expansion
+        response = []
+
+        if not country.tiles:
+            response.append(RollResponses.against_without_tiles())
+            return roll_value, response
+
+        if not target.tiles:
+            response.append(RollResponses.against_target_has_no_tiles(target.name))
+            return roll_value, response
+
+        if country.name == target.name:
+            response.append(RollResponses.against_self())
+            return roll_value, response
+
+        target_tiles = defaultdict(lambda: float("inf"))
+        visited = set()
+
+        while roll_value > 0:
+            for tile in country.tiles:
+                tile_code = tile.code
+                if tile_code in visited:
+                    continue
+                visited.add(tile_code)
+
+                for adjacent_tile_code in ResourcesHandler.get_adjacent_tiles(tile_code):
+                    adjacent_tile = get_tile(adjacent_tile_code, game.id)
+                    if adjacent_tile is None or adjacent_tile.owner_id is not target.id:
+                        continue
+
+                    distance = ResourcesHandler.calc_distance(tile_code, adjacent_tile_code)
+                    target_tiles[adjacent_tile_code] = min(target_tiles[adjacent_tile_code], distance)
+
+            if not target_tiles:
+                break
+
+            nearest = min(target_tiles, key=target_tiles.get)
+            update_tile_owner(game.id, nearest, country.id)
+            roll_value -= 1
+            target_tiles.pop(nearest)
+            response.append(RollResponses.capture_attack(country.name, nearest, target.name))
+
+        if roll_value > 0:
+            response.append(RollResponses.against_no_routes(target.name))
+
+        return roll_value, response
+
     @group(name="roll", aliases=["ролл"])
     @guild_only()
     @has_active_game()
@@ -224,7 +273,7 @@ class RollCommands(Cog):
             return
 
         if not tiles:
-            response = RollResponses.missing_prompt()
+            response = RollResponses.missing_tiles()
             await ctx.reply(response)
             return
 
@@ -303,12 +352,55 @@ class RollCommands(Cog):
             await ctx.invoke(self.map)
 
     @roll_group.command(name="against", aliases=["против"])
-    async def roll_against(self, ctx: Context, country_name: str | None, target: str | None):
+    async def roll_against(self, ctx: Context, country_name: str | None, target_name: str | None):
         """
         Ролл против другой страны
         (e.g. "против швайнохаоситов", если в игре есть страна с названием "швайнохаоситы")
         """
-        await ctx.reply("wip...")
+        if not country_name:
+            response = CountryResponses.missing_name()
+            await ctx.reply(response)
+            return
+
+        if not target_name:
+            response = RollResponses.missing_target()
+            await ctx.reply(response)
+            return
+
+        game = get_active_game_by_channel_id(ctx.channel.id)
+        country = get_country_by_name(game.id, country_name)
+        if not country:
+            response = CountryResponses.country_not_found(country_name)
+            await ctx.reply(response)
+            return
+        target = get_country_by_name(game.id, target_name)
+        if not target:
+            response = CountryResponses.country_not_found(target_name)
+            await ctx.reply(response)
+            return
+
+        roll = dices(ctx.message.id)
+        roll_value = CommentParser.get_roll_value("".join(map(str, roll)))
+
+        response = RollResponses.roll(roll, roll_value)
+
+        if not roll_value:
+            # don't really like this return statement here...
+            # should consider a way to check if prompt is valid before sending response
+            await ctx.reply(response)
+            return
+
+        remaining_roll_value, response_list = self._add_tiles_against(roll_value, game, country, target)
+        if remaining_roll_value:
+            response_list.append(RollResponses.roll_value_surplus(remaining_roll_value))
+        response += "\n" + "\n".join(response_list)
+
+        await ctx.reply(response)
+
+        if remaining_roll_value != roll_value:
+            # todo: this should not work this hardcoded-like way
+            #       later it will be great to separate all map render logic out of endpoint
+            await ctx.invoke(self.map)
 
     @command()
     @guild_only()

@@ -6,8 +6,12 @@ class RollResponses:
     # ========= MISSING ARGUMENTS =========
 
     @staticmethod
-    def missing_prompt() -> str:
-        return T.spoiler("prompt is required")
+    def missing_tiles() -> str:
+        return T.spoiler("tiles list is required")
+
+    @staticmethod
+    def missing_target() -> str:
+        return T.spoiler("target country is required")
 
     # ========= FAILURE =========
 
@@ -21,18 +25,18 @@ class RollResponses:
 
     @staticmethod
     def against_without_tiles() -> str:
-        # todo: on against roll, check if country has tiles
-        #       if not, notify user
         return T.spoiler("you cannot roll against someone if you don't control any tiles")
+
+    @staticmethod
+    def against_self() -> str:
+        return T.spoiler("you cannot roll against yourself")
 
     @staticmethod
     def expansion_no_free_tiles() -> str:
         return T.spoiler("there is no available free tile to roll on expansion")
 
     @staticmethod
-    def against_no_tiles(attacked_name: str) -> str:
-        # todo: on against roll, check if attacked country has any tiles
-        #       if not, notify user
+    def against_target_has_no_tiles(attacked_name: str) -> str:
         return T.spoiler(f"{attacked_name} doesn't control any tiles")
 
     @staticmethod
@@ -44,8 +48,6 @@ class RollResponses:
 
     @staticmethod
     def against_no_routes(attacked_name: str) -> str:
-        # todo: on against roll, check if there is any direct access to attacked country's tiles
-        #       if not, notify user
         return T.spoiler(f"there is no route from your tiles to \"{attacked_name}\"'s")
 
     @staticmethod

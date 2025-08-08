@@ -82,23 +82,6 @@ class CommentParser:
 
         return tiles
 
-    @classmethod
-    def is_roll_on_neutral(cls, comment: str) -> bool:
-        return any(k in comment for k in cls._expansion_keywords)
-
-    @classmethod
-    def is_roll_against(cls, comment: str) -> bool:
-        return any(k in comment for k in cls._against_keywords)
-
-    @classmethod
-    def get_against_roll_target(cls, comment: str) -> str:
-        for k in cls._against_keywords:
-            if k in comment:
-                comment = comment.replace(k, "", __count=1)
-                break
-        comment = comment.strip()
-        return comment
-
     @staticmethod
     def get_roll_value(num: int | str) -> int:
         vals = {
