@@ -19,7 +19,7 @@ class Country(Base):
     color: Mapped[str] = mapped_column(String(7), nullable=False, unique=True)
 
     # game_id: int [ref: > game.game.id, not null]
-    game_id: Mapped[int] = mapped_column(ForeignKey("game.id"), nullable=False)
+    game_id: Mapped[int] = mapped_column(ForeignKey("game.id", ondelete="CASCADE"), nullable=False)
 
     game: Mapped["Game"] = relationship(back_populates="countries")
 

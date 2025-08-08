@@ -17,10 +17,10 @@ class Tile(Base):
     code: Mapped[str] = mapped_column(String(3), nullable=False, unique=True)
 
     # game: int [ref: > game.game.id, not null]
-    game_id: Mapped[int] = mapped_column(ForeignKey("game.id"), nullable=False)
+    game_id: Mapped[int] = mapped_column(ForeignKey("game.id", ondelete="CASCADE"), nullable=False)
 
     # owner: int [ref: > game.country.id] (optional/nullable)
-    owner_id: Mapped[Optional[int]] = mapped_column(ForeignKey("country.id"), nullable=True)
+    owner_id: Mapped[Optional[int]] = mapped_column(ForeignKey("country.id", ondelete="CASCADE"), nullable=True)
 
     game: Mapped["Game"] = relationship(back_populates="tiles")
     owner: Mapped[Optional["Country"]] = relationship(back_populates="tiles")
