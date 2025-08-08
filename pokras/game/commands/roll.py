@@ -1,4 +1,6 @@
-from discord.ext.commands import Cog, command, Context, guild_only
+from collections import defaultdict
+
+from discord.ext.commands import Cog, command, Context, guild_only, group, Bot
 
 from game.commands.checks import has_active_game
 from game.queries.create_tile import create_tile
@@ -18,7 +20,7 @@ from game.utils.resources import ResourcesHandler, CountryModel
 
 
 class RollCommands(Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: Bot):
         self.bot = bot
 
     @staticmethod
@@ -132,30 +134,96 @@ class RollCommands(Cog):
 
         return roll_value, response
 
-    @command()
+    @staticmethod
+    def _add_tiles_expansion(roll_value: int, game: Game, country: Country) -> tuple[int, list[str]]:
+        # this thing chooses somewhat nearest tiles to the country
+        # the way it interprets the "nearest" though is kinda not the best one
+        #
+        # it calcs distances between country's tiles and adjacent to them tiles
+        # and then picks the closest adjacent tile to one of the country's tiles
+        #
+        # it leads to not what you would call "nearest" tiles selection pattern
+        # maybe some other way like picking the closest neutral tile to mass centroid of the country
+        # would do the job better
+        #
+        # but for now i don't care
+        response = []
+
+        if not country.tiles:
+            response.append(RollResponses.expansion_without_tiles())
+            return roll_value, response
+
+        free_tiles_codes = defaultdict(lambda: float("inf"))
+        visited = set()
+
+        while roll_value > 0:
+            # damn thats should be expensive server resources wise
+            # ...
+            # so ive checked this code, and actually, after we added one tile to the country
+            # we would check ALL ITS TILES again for like nothing 'cause we only need to check ONE added tile...
+            # yeah, i know that all visited tiles are already in the set, so it wouldn't take that long
+            # but still some queue-ish structure would be really nice
+            for tile in country.tiles:
+                tile_code = tile.code
+                if tile_code in visited:
+                    continue
+                visited.add(tile_code)
+
+                adjacent_tiles = ResourcesHandler.get_adjacent_tiles(tile_code)
+                for adjacent_tile_code in adjacent_tiles:
+                    adjacent_tile = get_tile(adjacent_tile_code, game.id)
+                    if adjacent_tile is not None and adjacent_tile.owner_id is not None:
+                        continue
+
+                    distance = ResourcesHandler.calc_distance(tile_code, adjacent_tile_code)
+                    free_tiles_codes[adjacent_tile_code] = min(free_tiles_codes[adjacent_tile_code], distance)
+
+            if not free_tiles_codes:
+                break
+
+            print(free_tiles_codes)
+            nearest_tile_code = min(free_tiles_codes, key=free_tiles_codes.get)
+            nearest_tile = get_tile(nearest_tile_code, game.id)
+            # once again, it should not rely on db here
+            if nearest_tile is None:
+                create_tile(nearest_tile_code, game.id, country.id)
+            else:
+                update_tile_owner(game.id, nearest_tile_code, country.id)
+
+            roll_value -= 1
+            free_tiles_codes.pop(nearest_tile_code)
+            response.append(RollResponses.capture_neutral(country.name, nearest_tile_code))
+
+        if roll_value > 0:
+            response.append(RollResponses.expansion_no_free_tiles())
+
+        return roll_value, response
+
+    @group(name="roll", aliases=["ролл"])
     @guild_only()
     @has_active_game()
-    async def roll(self, ctx: Context, country_name: str | None, *prompt: str | None):
+    async def roll_group(self, ctx: Context):
         """
+        5d10 ролл
+        """
+        if ctx.invoked_subcommand is None:
+            await ctx.reply("try !help roll")
+
+    @roll_group.command(name="tiles", aliases=["тайлы"])
+    async def roll_tiles(self, ctx: Context, country_name: str | None, *tiles: str | None):
+        """
+        Ролл на список тайлов (e.g. 1а 2bc 3деф)
+
         Args:
             country_name: название страны, за которую распределяются захваты
-            prompt: метод распределения захватов. может быть *одним из*:
-                а) ролл на тайлы (e.g. 1а 2bc 3деф)
-
-                wip (пока не работают):
-                б) ролл против другой страны (e.g. "против швайнохаоситов",
-                   если в игре есть страна с названием "швайнохаоситы")
-                в) ролл на расширение по нейтральным территориям (e.g. "на расширение")
-
-                "Против" и "расширение" - ключевые слова для определения
-                распределения захватов.
+            tiles: Список тайлов
         """
         if not country_name:
             response = CountryResponses.missing_name()
             await ctx.reply(response)
             return
 
-        if not prompt:
+        if not tiles:
             response = RollResponses.missing_prompt()
             await ctx.reply(response)
             return
@@ -178,21 +246,8 @@ class RollCommands(Cog):
             await ctx.reply(response)
             return
 
-        prompt = " ".join(prompt)
-
-        if CommentParser.is_roll_against(prompt):
-            response += "\nролл против"  # todo: add actual logic
-
-            await ctx.reply(response)
-            return
-
-        if CommentParser.is_roll_on_neutral(prompt):
-            response += "\nролл на расширение"  # todo: add actual logic
-
-            await ctx.reply(response)
-            return
-
-        tiles = CommentParser.process_tiles(prompt)
+        tiles = " ".join(tiles)
+        tiles = CommentParser.process_tiles(tiles)
         remaining_roll_value, response_list = self._add_tiles(roll_value, game, country, tiles)
         if remaining_roll_value:
             response_list.append(RollResponses.roll_value_surplus(remaining_roll_value))
@@ -204,7 +259,56 @@ class RollCommands(Cog):
         if remaining_roll_value != roll_value:
             # todo: this should not work this hardcoded-like way
             #       later it will be great to separate all map render logic out of endpoint
-            await ctx.invoke(self.bot.get_command("map"))
+            await ctx.invoke(self.map)
+
+    @roll_group.command(name="expansion", aliases=["покрас", "расширение"])
+    async def roll_expansion(self, ctx: Context, country_name: str | None):
+        """
+        Ролл на расширение по нейтральным территориям.
+        Наролленные захваты распределяются по доступным нейтральным территориям, если такие есть.
+        """
+        if not country_name:
+            response = CountryResponses.missing_name()
+            await ctx.reply(response)
+            return
+
+        game = get_active_game_by_channel_id(ctx.channel.id)
+        country = get_country_by_name(game.id, country_name)
+        if not country:
+            response = CountryResponses.country_not_found(country_name)
+            await ctx.reply(response)
+            return
+
+        roll = dices(ctx.message.id)
+        roll_value = CommentParser.get_roll_value("".join(map(str, roll)))
+
+        response = RollResponses.roll(roll, roll_value)
+
+        if not roll_value:
+            # don't really like this return statement here...
+            # should consider a way to check if prompt is valid before sending response
+            await ctx.reply(response)
+            return
+
+        remaining_roll_value, response_list = self._add_tiles_expansion(roll_value, game, country)
+        if remaining_roll_value:
+            response_list.append(RollResponses.roll_value_surplus(remaining_roll_value))
+        response += "\n" + "\n".join(response_list)
+
+        await ctx.reply(response)
+
+        if remaining_roll_value != roll_value:
+            # todo: this should not work this hardcoded-like way
+            #       later it will be great to separate all map render logic out of endpoint
+            await ctx.invoke(self.map)
+
+    @roll_group.command(name="against", aliases=["против"])
+    async def roll_against(self, ctx: Context, country_name: str | None, target: str | None):
+        """
+        Ролл против другой страны
+        (e.g. "против швайнохаоситов", если в игре есть страна с названием "швайнохаоситы")
+        """
+        await ctx.reply("wip...")
 
     @command()
     @guild_only()

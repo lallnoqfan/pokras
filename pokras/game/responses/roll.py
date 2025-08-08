@@ -17,8 +17,6 @@ class RollResponses:
 
     @staticmethod
     def expansion_without_tiles() -> str:
-        # todo: on expansion roll, check if player's country has tiles
-        #       if not, notify user
         return T.spoiler("you cannot roll on expansion if you don't control any tiles")
 
     @staticmethod
@@ -29,8 +27,6 @@ class RollResponses:
 
     @staticmethod
     def expansion_no_free_tiles() -> str:
-        # todo: on expansion roll, check if there are any adjacent free tiles
-        #       if not, notify user
         return T.spoiler("there is no available free tile to roll on expansion")
 
     @staticmethod

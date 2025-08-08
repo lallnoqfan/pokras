@@ -46,8 +46,32 @@ class ResourcesHandler:
         return cls.load_tiles_data().get(tile_id, None)
 
     @classmethod
+    def get_adjacent_tiles(cls, tile_id: str) -> list[str]:
+        tile = cls.get_tile(tile_id)
+        if not tile:
+            return []
+        return tile.get("routes", [])
+
+    @classmethod
     def tile_exists(cls, tile_id: str) -> bool:
         return tile_id in cls.load_tiles_data()
+
+    @classmethod
+    def calc_distance(cls, first_tile_id: str, second_tile_id: str) -> float:
+        first_tile = cls.get_tile(first_tile_id)
+        second_tile = cls.get_tile(second_tile_id)
+
+        x1, y1 = first_tile.get('x'), first_tile.get('y')
+        x2, y2 = second_tile.get('x'), second_tile.get('y')
+
+        distance = ((x1 - x2) ** 2 + (y1 - y2) ** 2) ** 0.5
+        print("=" * 50)
+        print(first_tile_id, second_tile_id)
+        print((x1, y1), (x2, y2))
+        print(distance)
+        print("=" * 50)
+
+        return distance
 
     @classmethod
     def draw_map(cls, countries: list[CountryModel]) -> Image.Image:
