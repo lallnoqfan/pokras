@@ -36,6 +36,11 @@ class CountryCommands(Cog):
             await ctx.send(response)
             return
 
+        if len(name) > 50:
+            response = CountryResponses.too_long_name()
+            await ctx.send(response)
+            return
+
         hex_color = CommentParser.parse_color(color)
         if not hex_color:
             response = CountryResponses.invalid_color(color)
@@ -79,6 +84,11 @@ class CountryCommands(Cog):
 
         if not new_name:
             response = CountryResponses.missing_new_name()
+            await ctx.send(response)
+            return
+
+        if len(new_name) > 50:
+            response = CountryResponses.too_long_name()
             await ctx.send(response)
             return
 
