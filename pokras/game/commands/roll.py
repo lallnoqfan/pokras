@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from discord.ext.commands import Cog, command, Context, guild_only, group, Bot
+from discord.ext.commands import Cog, command, Context, guild_only, group, Bot, cooldown, BucketType, CommandOnCooldown
 
 from game.commands.checks import has_active_game
 from game.queries.create_tile import create_tile
@@ -405,6 +405,7 @@ class RollCommands(Cog):
     @command()
     @guild_only()
     @has_active_game()
+    @cooldown(1, 30, BucketType.channel)
     async def map(self, ctx: Context):
         """
         Постит карту активной игры
@@ -428,9 +429,18 @@ class RollCommands(Cog):
         map_file = pillow_to_file(map_image, "map.png")
         await ctx.reply(file=map_file)
 
+    @map.error
+    async def map_error(self, ctx: Context, error: Exception):
+        if isinstance(error, CommandOnCooldown):
+            await ctx.reply("You can only use this command once every 30 seconds per channel.")
+
+        else:
+            raise error
+
     @command()
     @guild_only()
     @has_active_game()
+    @cooldown(1, 30, BucketType.channel)
     async def legend(self, ctx: Context):
         """
         Постит легенду стран в активной игре
@@ -452,3 +462,11 @@ class RollCommands(Cog):
         countries_image = ResourcesHandler.draw_countries(countries)
         countries_file = pillow_to_file(countries_image, "countries.png")
         await ctx.reply(file=countries_file)
+
+    @legend.error
+    async def legend_error(self, ctx: Context, error: Exception):
+        if isinstance(error, CommandOnCooldown):
+            await ctx.reply("You can only use this command once every 30 seconds per channel.")
+
+        else:
+            raise error
