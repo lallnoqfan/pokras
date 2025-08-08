@@ -13,7 +13,7 @@ class CountryCommands(Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @command()
+    @command(name="create", aliases=["вкат"])
     @guild_only()
     @has_active_game()
     async def create_country(self, ctx: Context, name: str | None, color: str | None):
@@ -65,7 +65,7 @@ class CountryCommands(Cog):
         response = CountryResponses.country_created(country)
         await ctx.send(response)
 
-    @command()
+    @command(name="rename", aliases=["change_name"])
     @guild_only()
     @has_active_game()
     async def change_name(self, ctx: Context, old_name: str | None, new_name: str | None):
@@ -116,7 +116,7 @@ class CountryCommands(Cog):
         response = CountryResponses.name_changed(country)
         await ctx.send(response)
 
-    @command()
+    @command(name="change_color")
     @guild_only()
     @has_active_game()
     async def change_color(self, ctx: Context, country_name: str | None, new_color: str | None):
