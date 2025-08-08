@@ -102,24 +102,21 @@ class CommentParser:
     @staticmethod
     def get_roll_value(num: int | str) -> int:
         vals = {
-            1: 0,
-            2: 1,
-            3: 3,
-            4: 5,
-            5: 8,
+            1: 1,   # normal roll
+            2: 3,   # double
+            3: 5,   # triple
+            4: 9,   # quadruple
+            5: 15,  # quintuple
         }
         specials = {
-            compile(r"^.*?((\d)\2(?!\2)(\d)\3\3)$"):   4,  # 11999 double-triple
-            compile(r"^.*?((\d)\2\2(?!\2)(\d)\3)$"):   4,  # 11199 triple-double
-            compile(r"^.*?((\d)\2(?!\2)(\d)\3)$"):     2,  # 1199  double-double
-            compile(r"^.*?((\d)(?!\2)\d\2)$"):         0,  # 191   3d pali
-            compile(r"^.*?((\d)(?!\2)(\d)\3\2)$"):     0,  # 1991  4d pali
-            compile(r"^.*?((\d)(?!\2\2)(\d)\d\3\2)$"): 0,  # 19191 5d pali
-            # todo: add palis and straights?
+            compile(r"^.*?((\d)\2(?!\2)(\d)\3\3)$"):   7,  # 11999 double-triple
+            compile(r"^.*?((\d)\2\2(?!\2)(\d)\3)$"):   7,  # 11199 triple-double
+            compile(r"^.*?((\d)\2(?!\2)(\d)\3)$"):     4,  # 1199  double-double
+            compile(r"^.*?((\d)(?!\2)\d\2)$"):         1,  # 191   3d pali
+            compile(r"^.*?((\d)(?!\2)(\d)\3\2)$"):     3,  # 1991  4d pali
+            compile(r"^.*?((\d)(?!\2\2)(\d)\d\3\2)$"): 5,  # 19191 5d pali
+            # todo: add straights?
             #       then make it possible to adjust values in runtime
-            #       ...
-            # todo?: man it would be sooo damn cool to have one really pretty casino style message
-            #        when you hit one of this things
         }
 
         # todo: for now, roll value is chosen based on order of gets in this two dicts above

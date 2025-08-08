@@ -13,8 +13,6 @@ class RollResponses:
 
     @staticmethod
     def invalid_tile(tile: str) -> str:
-        # todo: check if tile code is valid
-        #       if not, notify user
         return T.spoiler(f"{tile.upper()} is not a valid tile")
 
     @staticmethod
@@ -43,7 +41,7 @@ class RollResponses:
 
     @staticmethod
     def capture_no_route(tile: str) -> str:
-        # todo: on tile roll, check if there is direct access to the tile
+        #     : on tile roll, check if there is direct access to the tile
         #       also, there might be direct access to previously unreachable tile after capture,
         #       so notify user only if some tiles might be wasted
         return T.spoiler(f"there is no direct access from your tiles to {tile.upper()}")

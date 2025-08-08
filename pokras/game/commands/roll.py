@@ -32,6 +32,8 @@ class RollCommands(Cog):
         updated_tiles = []
         for tile_code in tile_codes:
             if not ResourcesHandler.tile_exists(tile_code):
+                # todo: should try to implement bulk response so all tiles are mentioned by one line
+                #       for now that "tile is invalid x9000" spam just feels annoying
                 response.append(RollResponses.invalid_tile(tile_code))
             else:
                 updated_tiles.append(tile_code)
@@ -66,6 +68,8 @@ class RollCommands(Cog):
                     # also, i should probably extract this checks
                     # to somewhere to make these statements more readable...
                     # but whatever for now
+                    #
+                    # this thing just should not rely on db entries...
                     response.append(RollResponses.spawn(country.name, tile_code))
                     update_tile_owner(game.id, tile_code, country.id)
 
@@ -75,7 +79,8 @@ class RollCommands(Cog):
                     response.append(RollResponses.spawn_attack(country.name, tile_code, attacked.name))
                     update_tile_owner(game.id, tile_code, country.id)
 
-                tile_codes.remove(tile)
+                if tile in tile_codes:
+                    tile_codes.remove(tile)
                 roll_value -= 1
 
                 break  # since now country has at least one tile
@@ -136,6 +141,8 @@ class RollCommands(Cog):
             country_name: название страны, за которую распределяются захваты
             prompt: метод распределения захватов. может быть *одним из*:
                 а) ролл на тайлы (e.g. 1а 2bc 3деф)
+
+                wip (пока не работают):
                 б) ролл против другой страны (e.g. "против швайнохаоситов",
                    если в игре есть страна с названием "швайнохаоситы")
                 в) ролл на расширение по нейтральным территориям (e.g. "на расширение")
@@ -166,6 +173,8 @@ class RollCommands(Cog):
         response = RollResponses.roll(roll, roll_value)
 
         if not roll_value:
+            # don't really like this return statement here...
+            # should consider a way to check if prompt is valid before sending response
             await ctx.reply(response)
             return
 
@@ -184,13 +193,18 @@ class RollCommands(Cog):
             return
 
         tiles = CommentParser.process_tiles(prompt)
-        roll_value, response_list = self._add_tiles(roll_value, game, country, tiles)
+        remaining_roll_value, response_list = self._add_tiles(roll_value, game, country, tiles)
+        if remaining_roll_value:
+            response_list.append(RollResponses.roll_value_surplus(remaining_roll_value))
         response += "\n" + "\n".join(response_list)
-        if roll_value:
-            response += "\n" + RollResponses.roll_value_surplus(roll_value)
         response += "\n(" + " ".join(tiles) + ")"
 
         await ctx.reply(response)
+
+        if remaining_roll_value != roll_value:
+            # todo: this should not work this hardcoded-like way
+            #       later it will be great to separate all map render logic out of endpoint
+            await ctx.invoke(self.bot.get_command("map"))
 
     @command()
     @guild_only()
@@ -226,6 +240,7 @@ class RollCommands(Cog):
         Постит легенду стран в активной игре
         """
         # todo: take game id as optional argument so it can be used not just for active game
+        # but then we would need to check if user is admin of that game... or smth idk
         game = get_active_game_by_channel_id(ctx.channel.id)
         countries = get_countries_by_game_id(game.id)
         if not countries:
