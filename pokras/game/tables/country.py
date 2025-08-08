@@ -1,6 +1,6 @@
 from typing import List
 
-from sqlalchemy import String, ForeignKey
+from sqlalchemy import String, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.base import Base
@@ -8,24 +8,19 @@ from db.base import Base
 
 class Country(Base):
     __tablename__ = "country"
+    __table_args__ = (
+        UniqueConstraint("game_id", "name"),
+        UniqueConstraint("game_id", "color"),
+    )
 
-    # id: int [pk, increment]
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(50), nullable=False)
+    color: Mapped[str] = mapped_column(String(7), nullable=False)
+    creator_id: Mapped[int] = mapped_column(nullable=False)
 
-    # name: str [not null, unique]
-    name: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
-
-    # color: str [not null, unique]
-    color: Mapped[str] = mapped_column(String(7), nullable=False, unique=True)
-
-    # game_id: int [ref: > game.game.id, not null]
     game_id: Mapped[int] = mapped_column(ForeignKey("game.id", ondelete="CASCADE"), nullable=False)
 
     game: Mapped["Game"] = relationship(back_populates="countries")
-
-    # creator_id: int [not null]
-    creator_id: Mapped[int] = mapped_column(nullable=False)
-
     tiles: Mapped[List["Tile"]] = relationship(
         back_populates="owner",
         cascade="all, delete-orphan",

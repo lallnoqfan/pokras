@@ -9,13 +9,8 @@ from db.base import Base
 class Game(Base):
     __tablename__ = "game"
 
-    # id: int [pk, increment]
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-
-    # channel: int [not null]
     channel: Mapped[int] = mapped_column(nullable=False)
-
-    # is_active: bool [default: false]
     is_active: Mapped[bool] = mapped_column(Boolean, default=False)
 
     countries: Mapped[List["Country"]] = relationship(

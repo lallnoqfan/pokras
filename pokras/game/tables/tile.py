@@ -1,6 +1,6 @@
 from typing import Optional
 
-from sqlalchemy import String, ForeignKey
+from sqlalchemy import String, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.base import Base
@@ -8,18 +8,14 @@ from db.base import Base
 
 class Tile(Base):
     __tablename__ = "tile"
+    __table_args__ = (
+        UniqueConstraint("game_id", "code"),
+    )
 
-    # id: int [pk, increment]
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    code: Mapped[str] = mapped_column(String(3), nullable=False)
 
-    # code: char [not null, unique]
-    # We use String(1) for a single character.
-    code: Mapped[str] = mapped_column(String(3), nullable=False, unique=True)
-
-    # game: int [ref: > game.game.id, not null]
     game_id: Mapped[int] = mapped_column(ForeignKey("game.id", ondelete="CASCADE"), nullable=False)
-
-    # owner: int [ref: > game.country.id] (optional/nullable)
     owner_id: Mapped[Optional[int]] = mapped_column(ForeignKey("country.id", ondelete="CASCADE"), nullable=True)
 
     game: Mapped["Game"] = relationship(back_populates="tiles")

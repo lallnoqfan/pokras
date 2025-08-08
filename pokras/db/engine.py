@@ -15,12 +15,18 @@ def _set_sqlite_pragma(dbapi_connection, connection_record):
 
     # the sqlite3 driver will not set PRAGMA foreign_keys
     # if autocommit=False; set to True temporarily
-    ac = dbapi_connection.autocommit
-    dbapi_connection.autocommit = True
+    try:
+        ac = dbapi_connection.autocommit
+        dbapi_connection.autocommit = True
 
-    cursor = dbapi_connection.cursor()
-    cursor.execute("PRAGMA foreign_keys=ON")
-    cursor.close()
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
 
-    # restore previous autocommit setting
-    dbapi_connection.autocommit = ac
+        # restore previous autocommit setting
+        dbapi_connection.autocommit = ac
+
+    except AttributeError:
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
