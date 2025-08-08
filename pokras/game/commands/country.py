@@ -16,21 +16,20 @@ class CountryCommands(Cog):
     @command()
     @guild_only()
     @has_active_game()
-    async def create_country(self, ctx: Context, color: str, *name: str | None):
+    async def create_country(self, ctx: Context, name: str | None, color: str | None):
         """
         Создаёт страну в активной игре
+        Если название страны содержит пробелы, оборачивайте его в кавычки (e.g. "Название страны")
+        Если название страны содержит кавычки, экранируйте их (e.g. "Страна \"Название\"")
 
         Args:
             color: Цвет новой страны в hex формате (e.g. #ff0000 или #F00 (или даже #ф00))
             name: Название новой страны
         """
-
         if not name:
             response = CountryResponses.missing_name()
             await ctx.send(response)
             return
-
-        name: str = " ".join(name)
 
         if not color:
             response = CountryResponses.missing_color()
