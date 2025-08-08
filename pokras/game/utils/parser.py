@@ -119,17 +119,17 @@ class CommentParser:
             #       then make it possible to adjust values in runtime
         }
 
-        # todo: for now, roll value is chosen based on order of gets in this two dicts above
-        #       need to fix it so the greatest one among fitted patterns is chosen
+        result_roll_value = 0
 
         num = str(num)
         for pattern in specials:
             if match(pattern, num):
-                return specials[pattern]
+                result_roll_value = max(result_roll_value, specials[pattern])
 
         num = num[::-1]
         c = 1
         while c < len(num) and num[c - 1] == num[c]:
             c += 1
-        val = vals.get(c, 0)
-        return val
+        result_roll_value = max(result_roll_value, vals.get(c, 0))
+
+        return result_roll_value
