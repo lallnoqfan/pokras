@@ -104,15 +104,20 @@ class ResourcesHandler:
             if not player.tiles
         }
 
+        active_countries_exists = len(active_countries) > 0
+        non_active_countries_exists = len(non_active_countries) > 0
+        active_non_active_exists = active_countries_exists and non_active_countries_exists
+
         w, h = 960, 50 * (
                 len(active_countries) + len(non_active_countries) +
-                (len(active_countries) > 0) + (len(non_active_countries) > 0) +
-                (len(active_countries) > 0 and len(non_active_countries) > 0)
+                active_countries_exists + non_active_countries_exists + active_non_active_exists
         )
+
         img = Image.new('RGB', (w, h), (255, 255, 255))
 
         i = 0
-        if len(active_countries) > 0:
+
+        if active_countries_exists:
             title_img = cls._draw_country_title("Active:", "#000000", skip_key=True)
             img.paste(title_img, (0, i * 50))
             i += 1
@@ -122,8 +127,10 @@ class ResourcesHandler:
             img.paste(title_img, (0, i * 50))
             i += 1
 
-        i += 1
-        if len(non_active_countries) > 0:
+        if active_non_active_exists:
+            i += 1
+
+        if non_active_countries_exists:
             title_img = cls._draw_country_title("Inactive:", "#000000", skip_key=True)
             img.paste(title_img, (0, i * 50))
             i += 1
