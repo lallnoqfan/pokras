@@ -37,11 +37,12 @@ class CountryCommands(Cog):
             await ctx.send(response)
             return
 
-        color = CommentParser.parse_color(color)
-        if not color:
+        hex_color = CommentParser.parse_color(color)
+        if not hex_color:
             response = CountryResponses.invalid_color(color)
             await ctx.reply(response)
             return
+        color = hex_color
 
         game = get_active_game_by_channel_id(ctx.channel.id)
         country = get_country_by_color(game.id, color)
@@ -127,11 +128,12 @@ class CountryCommands(Cog):
             await ctx.send(response)
             return
 
-        new_color = CommentParser.parse_color(new_color)
-        if not new_color:
+        hex_color = CommentParser.parse_color(new_color)
+        if not hex_color:
             response = CountryResponses.invalid_color(new_color)
             await ctx.reply(response)
             return
+        new_color = hex_color
 
         game = get_active_game_by_channel_id(ctx.channel.id)
         country = get_country_by_name(game.id, country_name)
