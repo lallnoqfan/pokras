@@ -1,10 +1,11 @@
-from discord.ext.commands import Cog, command, Context, guild_only
+from discord.ext.commands import Cog, command, Context, guild_only, CheckFailure, BadArgument
 
 from game.commands.checks import has_active_game, has_no_active_games, is_admin
 from game.queries.create_game import create_game
 from game.queries.get_game import get_games_by_channel_id, get_active_game_by_channel_id, get_game_by_id
 from game.queries.update_game import set_game_inactive, set_game_active
 from game.responses.game import GameResponses
+from game.tables.choices.game_map import GameMap
 
 
 class GameCommands(Cog):
@@ -26,14 +27,28 @@ class GameCommands(Cog):
     @guild_only()
     @is_admin()
     @has_no_active_games()
-    async def create_game(self, ctx: Context):
+    async def create_game(self, ctx: Context, game_map: GameMap = GameMap.eu_classic):
         """
         Создаёт новую игру в текущем канале
+
+        Args:
+            game_map: карта, на которой будет вестись игра
         """
         channel_id = ctx.channel.id
-        game = create_game(channel_id)
+        game = create_game(channel_id, game_map)
         response = GameResponses.game_created(game)
         await ctx.send(response)
+
+    @create_game.error
+    async def on_command_error(self, ctx: Context, error):
+        if isinstance(error, CheckFailure):
+            pass
+
+        elif isinstance(error, BadArgument):
+            await ctx.send(GameResponses.invalid_map())
+
+        else:
+            raise error
 
     @command()
     @guild_only()

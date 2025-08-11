@@ -24,7 +24,8 @@ class RollCommands(Cog):
         self.bot = bot
 
     @staticmethod
-    def _add_tiles(roll_value: int, game: Game, country: Country, tile_codes: list[str]) -> tuple[int, list[str]]:
+    def _add_tiles(roll_value: int, game: Game, country: Country, tile_codes: list[str],
+                   resources: type[ResourcesHandler]) -> tuple[int, list[str]]:
         # that's some serious spaghetti... probably even doesn't work lmfao
         # i'm too scared now to even try to decompose it
 
@@ -33,7 +34,8 @@ class RollCommands(Cog):
         # check if tile exists
         updated_tiles = []
         for tile_code in tile_codes:
-            if not ResourcesHandler.tile_exists(tile_code):
+            if not resources.tile_exists(tile_code):
+                print(f"{tile_code} is invalid")
                 # todo: should try to implement bulk response so all tiles are mentioned by one line
                 #       for now that "tile is invalid x9000" spam just feels annoying
                 response.append(RollResponses.invalid_tile(tile_code))
@@ -98,7 +100,7 @@ class RollCommands(Cog):
             owned_tiles = set(tile.code for tile in country.tiles)
 
             for tile_code in tile_codes:
-                for adjacent_tile in ResourcesHandler.get_tile(tile_code).get("routes"):
+                for adjacent_tile in resources.get_tile(tile_code).get("routes"):
                     if adjacent_tile not in owned_tiles:
                         continue
                     were_captures = True
@@ -135,7 +137,8 @@ class RollCommands(Cog):
         return roll_value, response
 
     @staticmethod
-    def _add_tiles_expansion(roll_value: int, game: Game, country: Country) -> tuple[int, list[str]]:
+    def _add_tiles_expansion(roll_value: int, game: Game, country: Country,
+                             resources: type[ResourcesHandler]) -> tuple[int, list[str]]:
         # this thing chooses somewhat nearest tiles to the country
         # the way it interprets the "nearest" though is kinda not the best one
         #
@@ -169,13 +172,13 @@ class RollCommands(Cog):
                     continue
                 visited.add(tile_code)
 
-                adjacent_tiles = ResourcesHandler.get_adjacent_tiles(tile_code)
+                adjacent_tiles = resources.get_adjacent_tiles(tile_code)
                 for adjacent_tile_code in adjacent_tiles:
                     adjacent_tile = get_tile(adjacent_tile_code, game.id)
                     if adjacent_tile is not None and adjacent_tile.owner_id is not None:
                         continue
 
-                    distance = ResourcesHandler.calc_distance(tile_code, adjacent_tile_code)
+                    distance = resources.calc_distance(tile_code, adjacent_tile_code)
                     free_tiles_codes[adjacent_tile_code] = min(free_tiles_codes[adjacent_tile_code], distance)
 
             if not free_tiles_codes:
@@ -200,7 +203,8 @@ class RollCommands(Cog):
         return roll_value, response
 
     @staticmethod
-    def _add_tiles_against(roll_value: int, game: Game, country: Country, target: Country) -> tuple[int, list[str]]:
+    def _add_tiles_against(roll_value: int, game: Game, country: Country, target: Country,
+                           resources: type[ResourcesHandler]) -> tuple[int, list[str]]:
         # works pretty much in the same way as _add_tiles_expansion
         response = []
 
@@ -226,12 +230,12 @@ class RollCommands(Cog):
                     continue
                 visited.add(tile_code)
 
-                for adjacent_tile_code in ResourcesHandler.get_adjacent_tiles(tile_code):
+                for adjacent_tile_code in resources.get_adjacent_tiles(tile_code):
                     adjacent_tile = get_tile(adjacent_tile_code, game.id)
                     if adjacent_tile is None or adjacent_tile.owner_id is not target.id:
                         continue
 
-                    distance = ResourcesHandler.calc_distance(tile_code, adjacent_tile_code)
+                    distance = resources.calc_distance(tile_code, adjacent_tile_code)
                     target_tiles[adjacent_tile_code] = min(target_tiles[adjacent_tile_code], distance)
 
             if not target_tiles:
@@ -297,7 +301,8 @@ class RollCommands(Cog):
 
         tiles = " ".join(tiles)
         tiles = CommentParser.process_tiles(tiles)
-        remaining_roll_value, response_list = self._add_tiles(roll_value, game, country, tiles)
+        resources = ResourcesHandler(game.map)
+        remaining_roll_value, response_list = self._add_tiles(roll_value, game, country, tiles, resources)
         if remaining_roll_value:
             response_list.append(RollResponses.roll_value_surplus(remaining_roll_value))
         response += "\n" + "\n".join(response_list)
@@ -339,7 +344,8 @@ class RollCommands(Cog):
             await ctx.reply(response)
             return
 
-        remaining_roll_value, response_list = self._add_tiles_expansion(roll_value, game, country)
+        resources = ResourcesHandler(game.map)
+        remaining_roll_value, response_list = self._add_tiles_expansion(roll_value, game, country, resources)
         if remaining_roll_value:
             response_list.append(RollResponses.roll_value_surplus(remaining_roll_value))
         response += "\n" + "\n".join(response_list)
@@ -390,7 +396,8 @@ class RollCommands(Cog):
             await ctx.reply(response)
             return
 
-        remaining_roll_value, response_list = self._add_tiles_against(roll_value, game, country, target)
+        resources = ResourcesHandler(game.map)
+        remaining_roll_value, response_list = self._add_tiles_against(roll_value, game, country, target, resources)
         if remaining_roll_value:
             response_list.append(RollResponses.roll_value_surplus(remaining_roll_value))
         response += "\n" + "\n".join(response_list)
@@ -413,6 +420,7 @@ class RollCommands(Cog):
         # todo: take game id as optional argument so it can be used not just for active game
         game = get_active_game_by_channel_id(ctx.channel.id)
         countries = get_countries_by_game_id(game.id)
+        resources = ResourcesHandler(game.map)
 
         if countries:
             countries = [CountryModel(
@@ -421,10 +429,10 @@ class RollCommands(Cog):
                 tiles=[tile.code for tile in country.tiles],
             ) for country in countries]
 
-            map_image = ResourcesHandler.draw_map(countries)
+            map_image = resources.draw_map(countries)
 
         else:
-            map_image = ResourcesHandler.load_map()
+            map_image = resources.load_map()
 
         map_file = pillow_to_file(map_image, "map.png")
         await ctx.reply(file=map_file)
@@ -452,6 +460,7 @@ class RollCommands(Cog):
         if not countries:
             await ctx.reply("There are no countries in this game, so... no legend i guess?")
             return
+        resources = ResourcesHandler(game.map)
 
         countries = [CountryModel(
                 name=country.name,
@@ -459,7 +468,7 @@ class RollCommands(Cog):
                 tiles=[tile.code for tile in country.tiles],
             ) for country in countries]
 
-        countries_image = ResourcesHandler.draw_countries(countries)
+        countries_image = resources.draw_countries(countries)
         countries_file = pillow_to_file(countries_image, "countries.png")
         await ctx.reply(file=countries_file)
 

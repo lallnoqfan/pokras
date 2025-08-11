@@ -32,7 +32,15 @@ class Paths:
     SQLITE_DB = BASE / "db.sqlite"
 
     RESOURCES = BASE / "resources"
-    MAP = RESOURCES / "map.png"
-    TILES_DATA = RESOURCES / "tiles_data.json"
-    RULES = RESOURCES / "rules.txt"
-    FONT = RESOURCES / "CodenameCoderFree4F-Bold.ttf"
+    MAPS = RESOURCES / "maps"
+    FONTS = RESOURCES / "fonts"
+
+    EU_CLASSIC = MAPS / "eu_classic"
+    EU_CLASSIC_MAP = EU_CLASSIC / "map.png"
+    EU_CLASSIC_TILES = EU_CLASSIC / "tiles_data.json"
+
+    STALKER = MAPS / "stalker"
+    STALKER_MAP = STALKER / "map.png"
+    STALKER_TILES = STALKER / "tiles_data.json"
+
+    FONT_CODENAME = FONTS / "CodenameCoderFree4F-Bold.ttf"

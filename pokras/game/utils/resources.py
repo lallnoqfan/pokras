@@ -1,11 +1,13 @@
 from dataclasses import dataclass, field
 from functools import cache
 from json import load
+from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 from webcolors import hex_to_rgb
 
 from config import Paths, AppConfig
+from game.tables.choices.game_map import GameMap
 
 
 @dataclass
@@ -25,21 +27,27 @@ class CountryModel:
 
 class ResourcesHandler:
 
-    @staticmethod
-    @cache
-    def load_tiles_data() -> dict:
-        with Paths.TILES_DATA.open("r", encoding="utf-8") as tiles_data:
-            return load(tiles_data)
+    _TILES_PATH: Path = Paths.EU_CLASSIC_TILES
+    _MAP_PATH: Path = Paths.EU_CLASSIC_MAP
+    _FONT = Paths.FONT_CODENAME
 
-    @staticmethod
-    @cache
-    def load_map() -> Image.Image:
-        return Image.open(Paths.MAP).convert('RGB')
+    def __new__(cls, game_map: GameMap):
+        match game_map:
+            case GameMap.eu_classic:
+                return EuClassicResources
+            case GameMap.stalker:
+                return StalkerResources
 
     @classmethod
-    def load_rules(cls) -> str:
-        with Paths.RULES.open("r", encoding="utf-8") as rules:
-            return rules.read()
+    @cache
+    def load_tiles_data(cls) -> dict:
+        with cls._TILES_PATH.open("r", encoding="utf-8") as tiles_data:
+            return load(tiles_data)
+
+    @classmethod
+    @cache
+    def load_map(cls) -> Image.Image:
+        return Image.open(cls._MAP_PATH).convert('RGB')
 
     @classmethod
     def get_tile(cls, tile_id: str) -> dict | None:
@@ -54,6 +62,7 @@ class ResourcesHandler:
 
     @classmethod
     def tile_exists(cls, tile_id: str) -> bool:
+        print(tile_id)
         return tile_id in cls.load_tiles_data()
 
     @classmethod
@@ -104,7 +113,7 @@ class ResourcesHandler:
             xy=(55 if not skip_key else 10, 0),
             text=country_name,
             fill=(0, 0, 0),
-            font=ImageFont.truetype(Paths.FONT, 40, encoding='unic'),
+            font=ImageFont.truetype(cls._FONT, 40, encoding='unic'),
         )
 
         return img
@@ -165,3 +174,12 @@ class ResourcesHandler:
             i += 1
 
         return img
+
+
+class EuClassicResources(ResourcesHandler):
+    ...
+
+
+class StalkerResources(ResourcesHandler):
+    _TILES_PATH: Path = Paths.STALKER_TILES
+    _MAP_PATH: Path = Paths.STALKER_MAP

@@ -6,6 +6,10 @@ class GameResponses:
     # ========= MISSING ARGUMENTS =========
 
     @staticmethod
+    def invalid_map() -> str:
+        return "this map is invalid"
+
+    @staticmethod
     def missing_game_id() -> str:
         return "game id is required"
 
