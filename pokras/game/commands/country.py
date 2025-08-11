@@ -162,7 +162,7 @@ class CountryCommands(Cog):
         response = CountryResponses.color_changed(country)
         await ctx.send(response)
 
-    @command()
+    @command(name="countries", aliases=["list_countries", "страны"])
     @guild_only()
     @has_active_game()
     async def list_countries(self, ctx: Context):
