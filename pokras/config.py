@@ -43,4 +43,8 @@ class Paths:
     STALKER_MAP = STALKER / "map.png"
     STALKER_TILES = STALKER / "tiles_data.json"
 
+    KOREA = MAPS / "korea"
+    KOREA_MAP = KOREA / "map.png"
+    KOREA_TILES = KOREA / "tiles_data.json"
+
     FONT_CODENAME = FONTS / "CodenameCoderFree4F-Bold.ttf"

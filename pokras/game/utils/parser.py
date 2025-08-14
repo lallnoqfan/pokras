@@ -19,6 +19,8 @@ class CommentParser:
             'д': 'd',
             'е': 'e',
             'ф': 'f',
+            'г': 'g',  # like here, for korea map
+            'ж': 'g',
         }
         for cyrillic, roman in cyrillic_to_roman.items():
             s = s.replace(cyrillic, roman)

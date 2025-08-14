@@ -37,6 +37,8 @@ class ResourcesHandler:
                 return EuClassicResources
             case GameMap.stalker:
                 return StalkerResources
+            case GameMap.korea:
+                return KoreaResources
 
     @classmethod
     @cache
@@ -183,3 +185,8 @@ class EuClassicResources(ResourcesHandler):
 class StalkerResources(ResourcesHandler):
     _TILES_PATH: Path = Paths.STALKER_TILES
     _MAP_PATH: Path = Paths.STALKER_MAP
+
+
+class KoreaResources(ResourcesHandler):
+    _TILES_PATH: Path = Paths.KOREA_TILES
+    _MAP_PATH: Path = Paths.KOREA_MAP
