@@ -13,7 +13,7 @@ class Tile(Base):
     )
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    code: Mapped[str] = mapped_column(String(3), nullable=False)
+    code: Mapped[str] = mapped_column(String(5), nullable=False)
 
     game_id: Mapped[int] = mapped_column(ForeignKey("game.id", ondelete="CASCADE"), nullable=False)
     owner_id: Mapped[Optional[int]] = mapped_column(ForeignKey("country.id", ondelete="CASCADE"), nullable=True)
