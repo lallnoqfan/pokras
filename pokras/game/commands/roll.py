@@ -1,6 +1,17 @@
 from collections import defaultdict
 
-from discord.ext.commands import Cog, command, Context, guild_only, group, Bot, cooldown, BucketType, CommandOnCooldown
+from discord.ext.commands import (
+    Bot,
+    Cog,
+    Context,
+    group,
+    command,
+    guild_only,
+    cooldown,
+    BucketType,
+    CheckFailure,
+    CommandOnCooldown,
+)
 
 from game.commands.checks import has_active_game
 from game.queries.create_tile import create_tile
@@ -15,6 +26,7 @@ from game.utils.discord import pillow_to_file
 from game.utils.parser import CommentParser
 from game.utils.randomizer import dices
 from game.utils.resources import ResourcesHandler, CountryModel
+
 
 # all that stuff might be quite slow... should consider adding db locks
 
@@ -439,7 +451,10 @@ class RollCommands(Cog):
 
     @map.error
     async def map_error(self, ctx: Context, error: Exception):
-        if isinstance(error, CommandOnCooldown):
+        if isinstance(error, CheckFailure):
+            pass
+
+        elif isinstance(error, CommandOnCooldown):
             await ctx.reply("You can only use this command once every 30 seconds per channel.")
 
         else:
@@ -474,7 +489,10 @@ class RollCommands(Cog):
 
     @legend.error
     async def legend_error(self, ctx: Context, error: Exception):
-        if isinstance(error, CommandOnCooldown):
+        if isinstance(error, CheckFailure):
+            pass
+
+        elif isinstance(error, CommandOnCooldown):
             await ctx.reply("You can only use this command once every 30 seconds per channel.")
 
         else:
