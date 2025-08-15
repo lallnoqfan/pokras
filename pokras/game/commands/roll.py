@@ -40,6 +40,8 @@ class RollCommands(Cog):
                    resources: type[ResourcesHandler]) -> tuple[int, list[str]]:
         # that's some serious spaghetti... probably even doesn't work lmfao
         # i'm too scared now to even try to decompose it
+        #
+        # not so scary now, i'll rework it, just two more weeks
 
         response = []
 
@@ -67,39 +69,35 @@ class RollCommands(Cog):
 
         # if country has no tiles
         if not country.tiles:
-            for tile_code in tile_codes:
-                tile = get_tile(tile_code, game.id)
+            tile_code = tile_codes.pop(0)
+            tile = get_tile(tile_code, game.id)
 
-                # free spot spawn
-                if tile is None:
-                    response.append(RollResponses.spawn(country.name, tile_code))
-                    create_tile(tile_code, game.id, country.id)
+            # free spot spawn
+            if tile is None:
+                response.append(RollResponses.spawn(country.name, tile_code))
+                create_tile(tile_code, game.id, country.id)
 
-                elif tile.owner is None:
-                    # nukes currently don't exist, so technically there is no way
-                    # for an existing in db tile to have no owner
-                    # though it's a good idea to check it since further updates
-                    # might change something
-                    # anyway, live by cursed project structure, die by it...
-                    # also, i should probably extract this checks
-                    # to somewhere to make these statements more readable...
-                    # but whatever for now
-                    #
-                    # this thing just should not rely on db entries...
-                    response.append(RollResponses.spawn(country.name, tile_code))
-                    update_tile_owner(game.id, tile_code, country.id)
+            elif tile.owner is None:
+                # nukes currently don't exist, so technically there is no way
+                # for an existing in db tile to have no owner
+                # though it's a good idea to check it since further updates
+                # might change something
+                # anyway, live by cursed project structure, die by it...
+                # also, i should probably extract this checks
+                # to somewhere to make these statements more readable...
+                # but whatever for now
+                #
+                # this thing just should not rely on db entries...
+                response.append(RollResponses.spawn(country.name, tile_code))
+                update_tile_owner(game.id, tile_code, country.id)
 
-                # attack spawn
-                else:
-                    attacked: Country = tile.owner
-                    response.append(RollResponses.spawn_attack(country.name, tile_code, attacked.name))
-                    update_tile_owner(game.id, tile_code, country.id)
+            # attack spawn
+            else:
+                attacked: Country = tile.owner
+                response.append(RollResponses.spawn_attack(country.name, tile_code, attacked.name))
+                update_tile_owner(game.id, tile_code, country.id)
 
-                if tile in tile_codes:
-                    tile_codes.remove(tile)
-                roll_value -= 1
-
-                break  # since now country has at least one tile
+            roll_value -= 1
 
         # if country has tiles
         while roll_value > 0 and tile_codes:
