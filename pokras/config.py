@@ -47,4 +47,8 @@ class Paths:
     KOREA_MAP = KOREA / "map.png"
     KOREA_TILES = KOREA / "tiles_data.json"
 
+    OPS_ASS = MAPS / "ops_ass"
+    OPS_ASS_MAP = OPS_ASS / "map.png"
+    OPS_ASS_TILES = OPS_ASS / "tiles_data.json"
+
     FONT_CODENAME = FONTS / "CodenameCoderFree4F-Bold.ttf"

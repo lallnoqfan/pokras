@@ -39,6 +39,8 @@ class ResourcesHandler:
                 return StalkerResources
             case GameMap.korea:
                 return KoreaResources
+            case GameMap.ops_ass:
+                return OpsAssResources
 
     @classmethod
     @cache
@@ -190,3 +192,8 @@ class StalkerResources(ResourcesHandler):
 class KoreaResources(ResourcesHandler):
     _TILES_PATH: Path = Paths.KOREA_TILES
     _MAP_PATH: Path = Paths.KOREA_MAP
+
+
+class OpsAssResources(ResourcesHandler):
+    _TILES_PATH: Path = Paths.OPS_ASS_TILES
+    _MAP_PATH: Path = Paths.OPS_ASS_MAP
