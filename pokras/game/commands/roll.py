@@ -49,7 +49,6 @@ class RollCommands(Cog):
         updated_tiles = []
         for tile_code in tile_codes:
             if not resources.tile_exists(tile_code):
-                print(f"{tile_code} is invalid")
                 # todo: should try to implement bulk response so all tiles are mentioned by one line
                 #       for now that "tile is invalid x9000" spam just feels annoying
                 response.append(RollResponses.invalid_tile(tile_code))
@@ -194,7 +193,6 @@ class RollCommands(Cog):
             if not free_tiles_codes:
                 break
 
-            print(free_tiles_codes)
             nearest_tile_code = min(free_tiles_codes, key=free_tiles_codes.get)
             nearest_tile = get_tile(nearest_tile_code, game.id)
             # once again, it should not rely on db here

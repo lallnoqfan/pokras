@@ -6,7 +6,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 from webcolors import hex_to_rgb
 
-from config import Paths, AppConfig
+from config import Paths
 from game.tables.choices.game_map import GameMap
 
 
@@ -66,7 +66,6 @@ class ResourcesHandler:
 
     @classmethod
     def tile_exists(cls, tile_id: str) -> bool:
-        print(tile_id)
         return tile_id in cls.load_tiles_data()
 
     @classmethod
@@ -78,11 +77,6 @@ class ResourcesHandler:
         x2, y2 = second_tile.get('x'), second_tile.get('y')
 
         distance = ((x1 - x2) ** 2 + (y1 - y2) ** 2) ** 0.5
-        print("=" * 50)
-        print(first_tile_id, second_tile_id)
-        print((x1, y1), (x2, y2))
-        print(distance)
-        print("=" * 50)
 
         return distance
 
@@ -124,17 +118,11 @@ class ResourcesHandler:
 
     @classmethod
     def draw_countries(cls, countries: list[CountryModel]) -> Image.Image:
-
-        if AppConfig.DEBUG:
-            for country in countries:
-                print(country)
-
         active_countries = {
             player.hex_color: player.name
             for player in countries
             if player.tiles
         }
-
         non_active_countries = {
             player.hex_color: player.name
             for player in countries
