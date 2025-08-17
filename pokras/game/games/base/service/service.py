@@ -1,0 +1,33 @@
+from abc import ABC, abstractmethod
+from typing import ClassVar, Type
+
+from game.games.base.parser.parser import Parser
+from game.games.base.painter.painter import Painter
+from game.games.base.repository.repository import Repository
+from game.games.base.tiler.tiler import Tiler
+from game.tables import Game, Country
+
+
+class Service(ABC):
+    """
+    Абстрактный класс, отвечающий за логику покраса карты
+    """
+    tiler: ClassVar[Type[Tiler]]
+    painter: ClassVar[Type[Painter]]
+    repository: ClassVar[Type[Repository]]
+    parser: ClassVar[Type[Parser]]
+
+    @classmethod
+    @abstractmethod
+    def add_tiles(cls, game: Game, country: Country, roll_value: int, tiles: str | list[str]) -> tuple[int, list[str]]:
+        ...
+
+    @classmethod
+    @abstractmethod
+    def add_expansion(cls, game: Game, country: Country, roll_value: int) -> tuple[int, list[str]]:
+        ...
+
+    @classmethod
+    @abstractmethod
+    def add_against(cls, game: Game, country: Country, target: Country, roll_value: int) -> tuple[int, list[str]]:
+        ...

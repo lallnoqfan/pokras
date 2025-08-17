@@ -13,11 +13,17 @@ class RollResponses:
     def missing_target() -> str:
         return T.spoiler("target country is required")
 
-    # ========= FAILURE =========
+    # ========= INVALID ARGUMENTS =========
 
     @staticmethod
     def invalid_tile(tile: str) -> str:
         return T.spoiler(f"{tile.upper()} is not a valid tile")
+
+    @staticmethod
+    def invalid_tiles(tiles: list[str]) -> str:
+        return T.spoiler(f"{', '.join(tiles)} are not valid tiles")
+
+    # ========= FAILURE =========
 
     @staticmethod
     def expansion_without_tiles() -> str:
@@ -51,8 +57,12 @@ class RollResponses:
         return T.spoiler(f"there is no route from your tiles to \"{attacked_name}\"'s")
 
     @staticmethod
-    def capture_owned(tile: str) -> str:
+    def capture_own_tile(tile: str) -> str:
         return T.spoiler(f"you already control {tile.upper()}")
+
+    @staticmethod
+    def capture_own_tiles(tiles: list[str]) -> str:
+        return T.spoiler(f"you already control {', '.join(tiles)}")
 
     @staticmethod
     def roll_value_surplus(surplus: int) -> str:
@@ -80,5 +90,5 @@ class RollResponses:
         return f"\"{country_name}\" captured {tile_id.upper()}"
 
     @staticmethod
-    def capture_attack(country_name: str, tile_id: str, attacked_name: str) -> str:
+    def capture_attack(country_name: str, attacked_name: str, tile_id: str) -> str:
         return T.bold(f"\"{country_name}\" captured \"{attacked_name}\"'s {tile_id.upper()}")
