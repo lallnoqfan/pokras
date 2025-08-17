@@ -14,6 +14,9 @@ class RollResponses:
         return T.spoiler("target country is required")
 
     # ========= INVALID ARGUMENTS =========
+    @staticmethod
+    def spawn_restricted_tiles():
+        return T.spoiler(f"provided tiles are prohibited for spawn")
 
     @staticmethod
     def invalid_tile(tile: str) -> str:

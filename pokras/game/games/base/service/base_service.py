@@ -13,7 +13,7 @@ class BaseService(Service, ABC):
     # all that stuff might be quite slow... should consider adding db locks
 
     @classmethod
-    def validate_tiles_exist(cls, tile_codes: list[str], response: list[str]) -> list[str]:
+    def _validate_tiles_exist(cls, tile_codes: list[str], response: list[str]) -> list[str]:
         """
         Фильтрует тайлы, которых нет на карте.
         В случае наличия, добавляет сообщение в response.
@@ -37,8 +37,8 @@ class BaseService(Service, ABC):
         return valid_tiles
 
     @classmethod
-    def validate_doesnt_own_tiles(cls, game: Game, country: Country,
-                                  tile_codes: list[str], response: list[str]) -> list[str]:
+    def _validate_doesnt_own_tiles(cls, game: Game, country: Country,
+                                   tile_codes: list[str], response: list[str]) -> list[str]:
         """
         Фильтрует тайлы, уже принадлежащие игроку.
         В случае наличия, добавляет сообщение в response.
@@ -65,26 +65,34 @@ class BaseService(Service, ABC):
         return valid_tiles
 
     @classmethod
+    def _spawn(cls, game: Game, country: Country, roll_value: int, tile_codes: list[str], response: list[str]) -> int:
+        spawn_tile = tile_codes.pop(0)
+        tile_owner: Country = cls.repository.get_tile_owner(game, spawn_tile)
+
+        if tile_owner is None:
+            response.append(RollResponses.spawn(country.name, spawn_tile))
+        else:
+            response.append(RollResponses.spawn_attack(country.name, spawn_tile, tile_owner.name))
+
+        cls.repository.set_tile_owner(game, country, spawn_tile)
+        roll_value -= 1
+
+        return roll_value
+
+    @classmethod
     def add_tiles(cls, game: Game, country: Country, roll_value: int, tiles: str | list[str]) -> tuple[int, list[str]]:
         response = []
         tile_codes = cls.parser.parse_tiles(cls.tiler, tiles)
-        tile_codes = cls.validate_tiles_exist(tile_codes, response)
-        tile_codes = cls.validate_doesnt_own_tiles(game, country, tile_codes, response)
+        tile_codes = cls._validate_tiles_exist(tile_codes, response)
+        tile_codes = cls._validate_doesnt_own_tiles(game, country, tile_codes, response)
 
         if roll_value <= 0:
             return roll_value, response
 
         if not country.tiles:
-            tile_code = tile_codes.pop(0)
-            tile_owner: Country = cls.repository.get_tile_owner(game, tile_code)
-
-            if tile_owner is None:
-                response.append(RollResponses.spawn(country.name, tile_code))
-            else:
-                response.append(RollResponses.spawn_attack(country.name, tile_code, tile_owner.name))
-
-            cls.repository.set_tile_owner(game, country, tile_code)
-            roll_value -= 1
+            new_roll_value = cls._spawn(game, country, roll_value, tile_codes, response)
+            if new_roll_value == roll_value:  # that is, spawn failed, so we should break; it's kinda lame though
+                return roll_value, response
 
         while roll_value > 0 and tile_codes:
             # now the hard(?) part. since not all tiles might be reachable from input order,
