@@ -92,6 +92,7 @@ class BaseService(Service, ABC):
         if not country.tiles:
             new_roll_value = cls._spawn(game, country, roll_value, tile_codes, response)
             if new_roll_value == roll_value:  # that is, spawn failed, so we should break; it's kinda lame though
+                response.append(RollResponses.roll_value_surplus(roll_value))
                 return roll_value, response
 
         while roll_value > 0 and tile_codes:
