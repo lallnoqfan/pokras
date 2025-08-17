@@ -19,15 +19,15 @@ class Service(ABC):
 
     @classmethod
     @abstractmethod
-    def add_tiles(cls, game: Game, country: Country, roll_value: int, tiles: str | list[str]) -> tuple[int, list[str]]:
+    def add_tiles(cls, game: Game, country: Country, roll: list[int], tiles: str | list[str]) -> tuple[bool, list[str]]:
         ...
 
     @classmethod
     @abstractmethod
-    def add_expansion(cls, game: Game, country: Country, roll_value: int) -> tuple[int, list[str]]:
+    def add_expansion(cls, game: Game, country: Country, roll: list[int]) -> tuple[bool, list[str]]:
         ...
 
     @classmethod
     @abstractmethod
-    def add_against(cls, game: Game, country: Country, target: Country, roll_value: int) -> tuple[int, list[str]]:
+    def add_against(cls, game: Game, country: Country, target: Country, roll: list[int]) -> tuple[bool, list[str]]:
         ...

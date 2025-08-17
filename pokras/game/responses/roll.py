@@ -80,6 +80,12 @@ class RollResponses:
         response += f" = {roll_value} tile{'s' if roll_value != 1 else ''}"
         return response
 
+    @classmethod
+    def roll_with_bonus(cls, nums: list[int], roll_value: int, bonus: int, total_value: int) -> str:
+        response = cls.roll(nums, roll_value)
+        response += f"\n{roll_value} + {bonus} = {total_value} tile{'s' if total_value != 1 else ''}"
+        return response
+
     @staticmethod
     def spawn(country_name: str, tile_id: str) -> str:
         return T.bold(f"\"{country_name}\" spawned at {tile_id.upper()}")

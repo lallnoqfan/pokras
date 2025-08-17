@@ -33,7 +33,10 @@ class BaseService(Service, ABC):
             else:
                 invalid_tiles.append(tile_code)
         if invalid_tiles:
-            response.append(RollResponses.invalid_tiles(invalid_tiles))
+            if len(invalid_tiles) == 1:
+                response.append(RollResponses.invalid_tile(invalid_tiles[0]))
+            else:
+                response.append(RollResponses.invalid_tiles(invalid_tiles))
         return valid_tiles
 
     @classmethod
@@ -65,6 +68,12 @@ class BaseService(Service, ABC):
         return valid_tiles
 
     @classmethod
+    def _process_roll(cls, game: Game, country: Country, roll: list[int], response: list[str]) -> int:
+        roll_value = cls.parser.get_roll_value(roll)
+        response.append(RollResponses.roll(roll, roll_value))
+        return roll_value
+
+    @classmethod
     def _spawn(cls, game: Game, country: Country, roll_value: int, tile_codes: list[str], response: list[str]) -> int:
         spawn_tile = tile_codes.pop(0)
         tile_owner: Country = cls.repository.get_tile_owner(game, spawn_tile)
@@ -80,20 +89,24 @@ class BaseService(Service, ABC):
         return roll_value
 
     @classmethod
-    def add_tiles(cls, game: Game, country: Country, roll_value: int, tiles: str | list[str]) -> tuple[int, list[str]]:
+    def add_tiles(cls, game: Game, country: Country, roll: list[int], tiles: str | list[str]) -> tuple[bool, list[str]]:
         response = []
+        state_changed = False
+
+        roll_value = cls._process_roll(game, country, roll, response)
+
         tile_codes = cls.parser.parse_tiles(cls.tiler, tiles)
         tile_codes = cls._validate_tiles_exist(tile_codes, response)
         tile_codes = cls._validate_doesnt_own_tiles(game, country, tile_codes, response)
 
         if roll_value <= 0:
-            return roll_value, response
+            return state_changed, response
 
         if not country.tiles:
             new_roll_value = cls._spawn(game, country, roll_value, tile_codes, response)
             if new_roll_value == roll_value:  # that is, spawn failed, so we should break; it's kinda lame though
                 response.append(RollResponses.roll_value_surplus(roll_value))
-                return roll_value, response
+                return state_changed, response
 
         while roll_value > 0 and tile_codes:
             # now the hard(?) part. since not all tiles might be reachable from input order,
@@ -110,6 +123,7 @@ class BaseService(Service, ABC):
                     if adjacent_tile_code not in owned_tiles:
                         continue
                     were_captures = True
+                    state_changed = True
 
                     tile_owner: Country = cls.repository.get_tile_owner(game, tile_code)
 
@@ -137,10 +151,10 @@ class BaseService(Service, ABC):
         if roll_value > 0:
             response.append(RollResponses.roll_value_surplus(roll_value))
 
-        return roll_value, response
+        return state_changed, response
 
     @classmethod
-    def add_expansion(cls, game: Game, country: Country, roll_value: int) -> tuple[int, list[str]]:
+    def add_expansion(cls, game: Game, country: Country, roll: list[int]) -> tuple[bool, list[str]]:
         # this thing chooses somewhat nearest tiles to the country
         # the way it interprets the "nearest" though is kinda not the best one
         #
@@ -153,13 +167,15 @@ class BaseService(Service, ABC):
         #
         # but for now i don't care
         response = []
+        state_changed = False
 
         if not country.tiles:
             response.append(RollResponses.expansion_without_tiles())
-            return roll_value, response
+            return False, response
 
+        roll_value = cls._process_roll(game, country, roll, response)
         if roll_value <= 0:
-            return roll_value, response
+            return False, response
 
         free_tiles_codes = defaultdict(lambda: float("inf"))
         visited = set()
@@ -195,32 +211,36 @@ class BaseService(Service, ABC):
             roll_value -= 1
             free_tiles_codes.pop(nearest_tile_code)
             response.append(RollResponses.capture_neutral(country.name, nearest_tile_code))
+            state_changed = True
 
         if roll_value > 0:
             response.append(RollResponses.expansion_no_free_tiles())
+            response.append(RollResponses.roll_value_surplus(roll_value))
 
-        return roll_value, response
+        return state_changed, response
 
     @classmethod
-    def add_against(cls, game: Game, country: Country, target: Country, roll_value: int) -> tuple[int, list[str]]:
+    def add_against(cls, game: Game, country: Country, target: Country, roll: list[int]) -> tuple[bool, list[str]]:
         # works pretty much in the same way as _add_tiles_expansion
         # the only difference is that it chooses not neutral tiles but targets tiles
         response = []
+        state_changed = False
 
         if not country.tiles:
             response.append(RollResponses.against_without_tiles())
-            return roll_value, response
+            return state_changed, response
 
         if not target.tiles:
             response.append(RollResponses.against_target_has_no_tiles(target.name))
-            return roll_value, response
+            return state_changed, response
 
         if country.name == target.name:
             response.append(RollResponses.against_self())
-            return roll_value, response
+            return state_changed, response
 
+        roll_value = cls._process_roll(game, country, roll, response)
         if roll_value <= 0:
-            return roll_value, response
+            return state_changed, response
 
         target_tiles = defaultdict(lambda: float("inf"))
         visited = set()
@@ -245,11 +265,14 @@ class BaseService(Service, ABC):
 
             nearest = min(target_tiles, key=target_tiles.get)
             cls.repository.set_tile_owner(game, country, nearest)
+
             roll_value -= 1
             target_tiles.pop(nearest)
             response.append(RollResponses.capture_attack(country.name, target.name, nearest))
+            state_changed = True
 
         if roll_value > 0:
             response.append(RollResponses.against_no_routes(target.name))
+            response.append(RollResponses.roll_value_surplus(roll_value))
 
-        return roll_value, response
+        return state_changed, response

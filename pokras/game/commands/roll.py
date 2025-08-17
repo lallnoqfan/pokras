@@ -13,7 +13,6 @@ from discord.ext.commands import (
 
 from game.commands.checks import has_active_game
 from game.games.base.painter.country import Country
-from game.games.base.parser.base_parser import BaseParser
 from game.games.strategy import ServiceStrategy
 from game.queries.get_country import get_country_by_name, get_countries_by_game_id
 from game.queries.get_game import get_active_game_by_channel_id
@@ -63,22 +62,16 @@ class RollCommands(Cog):
             await ctx.reply(response)
             return
 
-        response = []
-
         roll = dices(ctx.message.id)
-        roll_value = BaseParser.get_roll_value("".join(map(str, roll)))
-        response.append(RollResponses.roll(roll, roll_value))
-
         tiles = " ".join(tiles)
 
         service = ServiceStrategy(game.map)
-        remaining_roll_value, response_list = service.add_tiles(game, country, roll_value, tiles)
+        state_changed, response = service.add_tiles(game, country, roll, tiles)
 
-        response.extend(response_list)
         response = "\n" + "\n".join(response)
         await ctx.reply(response)
 
-        if remaining_roll_value != roll_value:
+        if state_changed:
             # todo: this should not work this hardcoded-like way
             #       later it will be great to separate all map render logic out of endpoint
             await ctx.invoke(self.map)
@@ -101,22 +94,15 @@ class RollCommands(Cog):
             await ctx.reply(response)
             return
 
-        response = []
-
         roll = dices(ctx.message.id)
-        roll_value = BaseParser.get_roll_value("".join(map(str, roll)))
-        response.append(RollResponses.roll(roll, roll_value))
 
         service = ServiceStrategy(game.map)
-        remaining_roll_value, response_list = service.add_expansion(game, country, roll_value)
+        state_changed, response = service.add_expansion(game, country, roll)
 
-        if remaining_roll_value:  # todo: move to service
-            response_list.append(RollResponses.roll_value_surplus(remaining_roll_value))
-        response.extend(response_list)
         response = "\n" + "\n".join(response)
         await ctx.reply(response)
 
-        if remaining_roll_value != roll_value:
+        if state_changed:
             # todo: this should not work this hardcoded-like way
             #       later it will be great to separate all map render logic out of endpoint
             await ctx.invoke(self.map)
@@ -148,22 +134,16 @@ class RollCommands(Cog):
             response = CountryResponses.country_not_found(target_name)
             await ctx.reply(response)
             return
-        response = []
 
         roll = dices(ctx.message.id)
-        roll_value = BaseParser.get_roll_value("".join(map(str, roll)))
-        response.append(RollResponses.roll(roll, roll_value))
 
         service = ServiceStrategy(game.map)
-        remaining_roll_value, response_list = service.add_against(game, country, target, roll_value)
+        state_changed, response = service.add_against(game, country, target, roll)
 
-        if remaining_roll_value:  # todo: move to service
-            response_list.append(RollResponses.roll_value_surplus(remaining_roll_value))
-        response.extend(response_list)
         response = "\n" + "\n".join(response)
         await ctx.reply(response)
 
-        if remaining_roll_value != roll_value:
+        if state_changed:
             # todo: this should not work this hardcoded-like way
             #       later it will be great to separate all map render logic out of endpoint
             await ctx.invoke(self.map)
