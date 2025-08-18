@@ -2,10 +2,10 @@ from discord import Intents
 from discord.ext.commands import Bot
 
 from config import BotConfig, ConnectionConfig
-from game.commands.country import CountryCommands
-from game.commands.game import GameCommands
-from game.commands.roll import RollCommands
-from game.commands.ping import TestCommands
+from modules.game.views import GameCommands
+from modules.country.views import CountryCommands
+from modules.roll.views import RollCommands
+from modules.ping.views import TestCommands
 
 
 class App(Bot):

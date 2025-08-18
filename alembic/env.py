@@ -12,7 +12,9 @@ from pokras.config import Paths
 sys.path.append(Paths.PROJECT_ROOT.__str__())
 
 from db.base import Base
-from game.tables import *  # noqa: i know i dont use it
+from modules.game.models.game import Game
+from modules.country.models.country import Country
+from modules.roll.models.tile import Tile
 
 # ===========================================================
 
