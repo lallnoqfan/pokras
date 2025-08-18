@@ -107,6 +107,8 @@ class BaseService(Service, ABC):
             if new_roll_value == roll_value:  # that is, spawn failed, so we should break; it's kinda lame though
                 response.append(RollResponses.roll_value_surplus(roll_value))
                 return state_changed, response
+            roll_value = new_roll_value
+            state_changed = True
 
         while roll_value > 0 and tile_codes:
             # now the hard(?) part. since not all tiles might be reachable from input order,
