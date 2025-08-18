@@ -3,4 +3,4 @@ from game.games.base.painter.base_painter import BasePainter
 
 
 class KoreaPainter(BasePainter):
-    MAP = Paths.KOREA_MAP
+    TILES_MAP = Paths.KOREA_MAP

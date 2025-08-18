@@ -1,5 +1,6 @@
 from abc import ABC
 from functools import cache
+from pathlib import Path
 from typing import Type
 
 from PIL import Image, ImageDraw, ImageFont
@@ -20,16 +21,23 @@ class BasePainter(Painter, ABC):
     @classmethod
     @cache
     def _load_map(cls) -> Image.Image:
-        return Image.open(cls.MAP).convert("RGB")
+        if isinstance(cls.TILES_MAP, Path):
+            return Image.open(cls.TILES_MAP).convert("RGBA")
+        return Image.open(cls.TILES_MAP.file_path).convert("RGBA")
 
     @classmethod
     def draw_map(cls, tiler: Type[Tiler], countries: list[Country]) -> Image.Image:
         map_image = cls._load_map().copy()
 
+        if isinstance(cls.TILES_MAP, Path):
+            dx, dy = 0, 0
+        else:
+            dx, dy = cls.TILES_MAP.paste_bias
         for player in countries:
             for tile_code in player.tiles:
-                fill_cords = tiler.get_fill_cords(tile_code)
-                ImageDraw.floodfill(map_image, fill_cords, hex_to_rgb(player.hex_color))
+                x, y = tiler.get_fill_cords(tile_code)
+                x, y = x - dx, y - dy
+                ImageDraw.floodfill(map_image, (x, y), (*hex_to_rgb(player.hex_color), 255))
 
         return map_image
 

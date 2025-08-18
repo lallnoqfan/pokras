@@ -5,6 +5,7 @@ from typing import ClassVar, Type
 from PIL import Image
 
 from game.games.base.painter.country import Country
+from game.games.base.painter.layer import Layer
 from game.games.base.tiler.tiler import Tiler
 
 
@@ -14,10 +15,10 @@ class Painter(ABC):
 
     Attributes:
         FONT: Путь к шрифту, которым рисуется легенда
-        MAP: Путь к файлу карты
+        TILES_MAP: Путь к файлу карты
     """
     FONT: ClassVar[Path]
-    MAP: ClassVar[Path]
+    TILES_MAP: ClassVar[Layer]
 
     @classmethod
     @abstractmethod
