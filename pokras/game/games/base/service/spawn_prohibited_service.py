@@ -21,6 +21,7 @@ class SpawnProhibitedService(BaseService, ABC):
         if spawn_tile is None:
             response.append(RollResponses.spawn_restricted_tiles())
             return roll_value
+        tile_codes.remove(spawn_tile)
 
         # some dirty code repetition here
         # if some other spawn related mechanic will be added, this should be refactored
