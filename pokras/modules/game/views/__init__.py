@@ -1,28 +1,17 @@
-from discord.ext.commands import Cog, command, guild_only, Context, CheckFailure, BadArgument, group, Converter
+from discord.ext.commands import Cog, Bot, group, guild_only, Context, command, CheckFailure, BadArgument
 
 from modules.game.models.choices.game_map import GameMap
 from modules.game.queries.create_game import create_game
-from modules.game.queries.get_game import get_games_by_channel_id, get_active_game_by_channel_id, get_game_by_id
+from modules.game.queries.get_game import get_active_game_by_channel_id, get_games_by_channel_id, get_game_by_id
 from modules.game.queries.update_game import set_game_inactive, set_game_active
 from modules.game.responses import GameResponses
-from modules.game.service.models.roll_type import RollType
-from modules.game.service.service import parse_values, set_roll_values, get_roll_values
-from utils.checks import is_admin, has_no_active_games, has_active_game
+from modules.game.views.info import InfoGroup
+from modules.game.views.set import SetGroup
+from utils.checks import has_active_game, is_admin, has_no_active_games
 
 
-class RollTypeConverter(Converter):
-    async def convert(self, ctx: Context, argument: str):
-        try:
-            return RollType[argument.lower()]
-        except KeyError:
-            for member in RollType:
-                if member.value == argument:
-                    return member
-            raise BadArgument(f'"{argument}" is not a valid roll type.')
-
-
-class GameCommands(Cog):
-    def __init__(self, bot):
+class GameCommands(SetGroup, InfoGroup, Cog):
+    def __init__(self, bot: Bot):
         self.bot = bot
 
     @group()
@@ -30,45 +19,6 @@ class GameCommands(Cog):
     async def game(self, ctx: Context):
         if ctx.invoked_subcommand is None:
             await ctx.send_help("game")
-
-    @game.command()
-    @has_active_game()
-    async def info(self, ctx: Context):
-        game = get_active_game_by_channel_id(ctx.channel.id)
-        response = [f"Карта: {game.map}",]
-        v = parse_values(game.roll_values)
-        response.append(v.dump_to_info_message())
-        response = "\n".join(response)
-        await ctx.send(response)
-
-    @game.group()
-    @is_admin()
-    async def set(self, ctx: Context):
-        if ctx.invoked_subcommand is None:
-            await ctx.send_help("game set")
-
-    @set.command(name="roll")
-    async def set_roll(self, ctx: Context, value_type: RollTypeConverter, value: int):
-        if value < 0:
-            await ctx.send("fail")
-            return
-
-        game = get_active_game_by_channel_id(ctx.channel.id)
-        roll_values = get_roll_values(game)
-        setattr(roll_values, value_type.name, value)
-        set_roll_values(game, roll_values)
-
-        await ctx.send("ok")
-
-    @set.command(name="rolls")
-    async def set_rolls(self, ctx: Context, roll_values: str):
-        values = parse_values(roll_values)
-        if values is None:
-            await ctx.send("fail")
-            return
-        game = get_active_game_by_channel_id(ctx.channel.id)
-        set_roll_values(game, values)
-        await ctx.send("ok")
 
     @command()
     @guild_only()

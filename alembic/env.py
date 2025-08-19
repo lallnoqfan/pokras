@@ -15,6 +15,7 @@ from db.base import Base
 from modules.game.models.game import Game
 from modules.country.models.country import Country
 from modules.roll.models.tile import Tile
+from modules.roll.models.last_roll import LastRoll
 
 # ===========================================================
 

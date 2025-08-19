@@ -5,6 +5,7 @@ from modules.country.queries.get_country import get_country_by_name, get_countri
 from modules.country.responses import CountryResponses
 from modules.game.queries.get_game import get_active_game_by_channel_id
 from modules.roll.responses import RollResponses
+from modules.roll.service.base.models.prompt import Prompt
 from modules.roll.service.strategy import ServiceStrategy
 from utils.checks import has_active_game
 from utils.discord import pillow_to_file
@@ -54,8 +55,12 @@ class RollCommands(Cog):
         roll = dices(ctx.message.id)
         tiles = " ".join(tiles)
 
-        service = ServiceStrategy(game.map)
-        state_changed, response = service.add_tiles(game, country, roll, tiles)
+        service = ServiceStrategy(game)
+        service_response = service.add_tiles(game, country, Prompt(
+            roll=roll, timestamp=ctx.message.created_at,
+        ), tiles)
+        response = service_response.messages
+        state_changed = service_response.map_state_changed
 
         response = "\n" + "\n".join(response)
         await ctx.reply(response)
@@ -85,8 +90,12 @@ class RollCommands(Cog):
 
         roll = dices(ctx.message.id)
 
-        service = ServiceStrategy(game.map)
-        state_changed, response = service.add_expansion(game, country, roll)
+        service = ServiceStrategy(game)
+        service_response = service.add_expansion(game, country, Prompt(
+            roll=roll, timestamp=ctx.message.created_at,
+        ))
+        response = service_response.messages
+        state_changed = service_response.map_state_changed
 
         response = "\n" + "\n".join(response)
         await ctx.reply(response)
@@ -126,8 +135,12 @@ class RollCommands(Cog):
 
         roll = dices(ctx.message.id)
 
-        service = ServiceStrategy(game.map)
-        state_changed, response = service.add_against(game, country, target, roll)
+        service = ServiceStrategy(game)
+        service_response = service.add_against(game, country, Prompt(
+            roll=roll, timestamp=ctx.message.created_at,
+        ), target)
+        response = service_response.messages
+        state_changed = service_response.map_state_changed
 
         response = "\n" + "\n".join(response)
         await ctx.reply(response)
@@ -149,7 +162,7 @@ class RollCommands(Cog):
         game = get_active_game_by_channel_id(ctx.channel.id)
         countries = get_countries_by_game_id(game.id)
 
-        service = ServiceStrategy(game.map)
+        service = ServiceStrategy(game)
         painter = service.painter
         tiler = service.tiler
 
@@ -185,7 +198,7 @@ class RollCommands(Cog):
             await ctx.reply("There are no countries in this game, so... no legend i guess?")
             return
 
-        service = ServiceStrategy(game.map)
+        service = ServiceStrategy(game)
         painter = service.painter
         tiler = service.tiler
 

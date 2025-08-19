@@ -4,6 +4,8 @@ from collections import defaultdict
 from modules.country.models.country import Country
 from modules.game.models.game import Game
 from modules.roll.responses import RollResponses
+from modules.roll.service.base.models.prompt import Prompt
+from modules.roll.service.base.models.roll_response import RollResponse
 from modules.roll.service.base.service.service import Service
 
 
@@ -91,24 +93,26 @@ class BaseService(Service, ABC):
         return roll_value
 
     @classmethod
-    def add_tiles(cls, game: Game, country: Country, roll: list[int], tiles: str | list[str]) -> tuple[bool, list[str]]:
+    def add_tiles(cls, game: Game, country: Country, prompt: Prompt, tiles: str | list[str]) -> RollResponse:
         response = []
         state_changed = False
+        roll = prompt.roll
 
-        roll_value = cls._process_roll(game, country, roll, response)
+        initial_roll_value = cls._process_roll(game, country, roll, response)
+        if initial_roll_value <= 0:
+            return RollResponse(ok=True, map_state_changed=state_changed, messages=response)
+        roll_value = initial_roll_value
 
         tile_codes = cls.parser.parse_tiles(cls.tiler, tiles)
         tile_codes = cls._validate_tiles_exist(tile_codes, response)
         tile_codes = cls._validate_doesnt_own_tiles(game, country, tile_codes, response)
 
-        if roll_value <= 0:
-            return state_changed, response
-
         if not country.tiles:
             new_roll_value = cls._spawn(game, country, roll_value, tile_codes, response)
             if new_roll_value == roll_value:  # that is, spawn failed, so we should break; it's kinda lame though
+                # todo replace with "spawn failed" message
                 response.append(RollResponses.roll_value_surplus(roll_value))
-                return state_changed, response
+                return RollResponse(ok=False, map_state_changed=state_changed, messages=response)
             roll_value = new_roll_value
             state_changed = True
 
@@ -152,13 +156,19 @@ class BaseService(Service, ABC):
                 response.append(RollResponses.capture_no_route(tile_code))
             break
 
-        if roll_value > 0:
+        if roll_value == initial_roll_value:
+            ok = False
+            # todo add roll failed message
+        elif roll_value > 0:
+            ok = True
             response.append(RollResponses.roll_value_surplus(roll_value))
+        else:  # roll_value == 0
+            ok = True
 
-        return state_changed, response
+        return RollResponse(ok=ok, map_state_changed=state_changed, messages=response)
 
     @classmethod
-    def add_expansion(cls, game: Game, country: Country, roll: list[int]) -> tuple[bool, list[str]]:
+    def add_expansion(cls, game: Game, country: Country, prompt: Prompt) -> RollResponse:
         # this thing chooses somewhat nearest tiles to the country
         # the way it interprets the "nearest" though is kinda not the best one
         #
@@ -172,14 +182,16 @@ class BaseService(Service, ABC):
         # but for now i don't care
         response = []
         state_changed = False
+        roll = prompt.roll
 
         if not country.tiles:
             response.append(RollResponses.expansion_without_tiles())
-            return False, response
+            return RollResponse(ok=False, map_state_changed=state_changed, messages=response)
 
-        roll_value = cls._process_roll(game, country, roll, response)
-        if roll_value <= 0:
-            return False, response
+        initial_roll_value = cls._process_roll(game, country, roll, response)
+        if initial_roll_value <= 0:
+            return RollResponse(ok=True, map_state_changed=state_changed, messages=response)
+        roll_value = initial_roll_value
 
         free_tiles_codes = defaultdict(lambda: float("inf"))
         visited = set()
@@ -217,34 +229,43 @@ class BaseService(Service, ABC):
             response.append(RollResponses.capture_neutral(country.name, nearest_tile_code))
             state_changed = True
 
-        if roll_value > 0:
+        if roll_value == initial_roll_value:
+            ok = False
+            # todo add roll failed message
+            response.append(RollResponses.expansion_no_free_tiles())
+        elif roll_value > 0:
+            ok = True
             response.append(RollResponses.expansion_no_free_tiles())
             response.append(RollResponses.roll_value_surplus(roll_value))
+        else:  # roll_value == 0
+            ok = True
 
-        return state_changed, response
+        return RollResponse(ok=ok, map_state_changed=state_changed, messages=response)
 
     @classmethod
-    def add_against(cls, game: Game, country: Country, target: Country, roll: list[int]) -> tuple[bool, list[str]]:
+    def add_against(cls, game: Game, country: Country, prompt: Prompt, target: Country) -> RollResponse:
         # works pretty much in the same way as _add_tiles_expansion
         # the only difference is that it chooses not neutral tiles but targets tiles
         response = []
         state_changed = False
+        roll = prompt.roll
 
         if not country.tiles:
             response.append(RollResponses.against_without_tiles())
-            return state_changed, response
+            return RollResponse(ok=False, map_state_changed=state_changed, messages=response)
 
         if not target.tiles:
             response.append(RollResponses.against_target_has_no_tiles(target.name))
-            return state_changed, response
+            return RollResponse(ok=False, map_state_changed=state_changed, messages=response)
 
         if country.name == target.name:
             response.append(RollResponses.against_self())
-            return state_changed, response
+            return RollResponse(ok=False, map_state_changed=state_changed, messages=response)
 
-        roll_value = cls._process_roll(game, country, roll, response)
-        if roll_value <= 0:
-            return state_changed, response
+        initial_roll_value = cls._process_roll(game, country, roll, response)
+        if initial_roll_value <= 0:
+            return RollResponse(ok=True, map_state_changed=state_changed, messages=response)
+        roll_value = initial_roll_value
 
         target_tiles = defaultdict(lambda: float("inf"))
         visited = set()
@@ -275,8 +296,15 @@ class BaseService(Service, ABC):
             response.append(RollResponses.capture_attack(country.name, target.name, nearest))
             state_changed = True
 
-        if roll_value > 0:
+        if roll_value == initial_roll_value:
+            ok = False
+            response.append(RollResponses.against_no_routes(target.name))
+            # todo add roll failed message
+        elif roll_value > 0:
+            ok = True
             response.append(RollResponses.against_no_routes(target.name))
             response.append(RollResponses.roll_value_surplus(roll_value))
+        else:  # roll_value == 0
+            ok = True
 
-        return state_changed, response
+        return RollResponse(ok=ok, map_state_changed=state_changed, messages=response)
