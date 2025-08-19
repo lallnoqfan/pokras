@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from discord.ext.commands import Cog, Bot, group, Context, BadArgument
+from discord.ext.commands import Cog, group, Context, BadArgument
 
 from modules.game.queries.get_game import get_active_game_by_channel_id
 from modules.game.queries.update_game import remove_cooldown, set_cooldown
