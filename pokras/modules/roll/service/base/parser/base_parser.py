@@ -1,9 +1,16 @@
+from enum import Enum
 from re import compile, match, findall
 from typing import Type
 
 from modules.roll.service.base.parser.parser import Parser
 from modules.roll.service.base.tiler.tiler import Tiler
 from utils.text import cyrillic_to_roman
+
+
+
+
+
+
 
 
 class BaseParser(Parser):
@@ -62,34 +69,12 @@ class BaseParser(Parser):
         elif isinstance(roll, list):
             roll = "".join(str(r) for r in roll)
 
-        vals = {
-            1: 1,   # normal roll
-            2: 3,   # double
-            3: 5,   # triple
-            4: 9,   # quadruple
-            5: 15,  # quintuple
-        }
-        specials = {
-            compile(r"^.*?((\d)\2(?!\2)(\d)\3\3)$"):   7,  # 11999 double-triple
-            compile(r"^.*?((\d)\2\2(?!\2)(\d)\3)$"):   7,  # 11199 triple-double
-            compile(r"^.*?((\d)\2(?!\2)(\d)\3)$"):     4,  # 1199  double-double
-            compile(r"^.*?((\d)(?!\2)\d\2)$"):         1,  # 191   3d pali
-            compile(r"^.*?((\d)(?!\2)(\d)\3\2)$"):     3,  # 1991  4d pali
-            compile(r"^.*?((\d)(?!\2\2)(\d)\d\3\2)$"): 5,  # 19191 5d pali
-            # todo: add straights?
-            #       then make it possible to adjust values in runtime
-        }
+        patterns = {}
 
         result_roll_value = 0
 
-        for pattern in specials:
+        for pattern in patterns:
             if match(pattern, roll):
-                result_roll_value = max(result_roll_value, specials[pattern])
-
-        num = roll[::-1]
-        c = 1
-        while c < len(num) and num[c - 1] == num[c]:
-            c += 1
-        result_roll_value = max(result_roll_value, vals.get(c, 0))
+                result_roll_value = max(result_roll_value, patterns[pattern])
 
         return result_roll_value

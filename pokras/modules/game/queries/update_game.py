@@ -14,3 +14,9 @@ def set_game_inactive(game_id: int) -> None:
     stmt = update(Game).where(Game.id == game_id).values(is_active=False)
     session.execute(stmt)
     session.commit()
+
+
+def update_roll_values(game_id: int, values: str) -> None:
+    stmt = update(Game).where(Game.id == game_id).values(roll_values=values)
+    session.execute(stmt)
+    session.commit()
