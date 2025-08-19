@@ -4,7 +4,8 @@ from modules.game.models.game import Game
 
 
 def create_game(channel_id: int, game_map: GameMap) -> Game:
-    new_game = Game(channel=channel_id, is_active=True, map=game_map)
+    new_game = Game(channel=channel_id, is_active=True, map=game_map,
+                    use_cooldown=False, )
     session.add(new_game)
     session.commit()
     session.refresh(new_game)
