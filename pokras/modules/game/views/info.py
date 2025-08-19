@@ -21,12 +21,13 @@ class InfoGroup(Cog):
         response.append(f"Карта: {game.map.name}")
 
         # cooldown
+        cooldown_seconds = round(game.cooldown.total_seconds())
         if not game.use_cooldown:
             cd = "Кд: нет"
-        elif game.cooldown < 60:
-            cd = f"Кд: {game.cooldown}с"
+        elif cooldown_seconds < 60:
+            cd = f"Кд: {cooldown_seconds}с"
         else:
-            cd = f"Кд: {game.cooldown // 60}мин" + (f" {game.cooldown % 60}с" if game.cooldown % 60 else "")
+            cd = f"Кд: {cooldown_seconds // 60}мин" + (f" {cooldown_seconds % 60}с" if cooldown_seconds % 60 else "")
         response.append(cd)
 
         # rolls
