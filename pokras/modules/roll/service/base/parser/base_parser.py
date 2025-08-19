@@ -1,16 +1,9 @@
-from enum import Enum
-from re import compile, match, findall
+from re import match, findall
 from typing import Type
 
 from modules.roll.service.base.parser.parser import Parser
 from modules.roll.service.base.tiler.tiler import Tiler
 from utils.text import cyrillic_to_roman
-
-
-
-
-
-
 
 
 class BaseParser(Parser):
@@ -71,9 +64,9 @@ class BaseParser(Parser):
 
         patterns = {}
 
-        result_roll_value = 0
+        result_roll_value = 1
 
-        for pattern in patterns:
+        for pattern in patterns.keys():
             if match(pattern, roll):
                 result_roll_value = max(result_roll_value, patterns[pattern])
 

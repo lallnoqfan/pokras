@@ -35,9 +35,9 @@ class BasePainter(Painter, ABC):
             dx, dy = cls.TILES_MAP.paste_bias
         for player in countries:
             for tile_code in player.tiles:
-                x, y = tiler.get_fill_cords(tile_code)
+                x, y = tiler.get_fill_cords(tile_code.code)
                 x, y = x - dx, y - dy
-                ImageDraw.floodfill(map_image, (x, y), (*hex_to_rgb(player.hex_color), 255))
+                ImageDraw.floodfill(map_image, (x, y), (*hex_to_rgb(player.color), 255))
 
         return map_image
 
@@ -66,12 +66,12 @@ class BasePainter(Painter, ABC):
     @classmethod
     def draw_legend(cls, tiler: Type[Tiler], countries: list[Country]) -> Image.Image:
         active_countries = {
-            player.hex_color: player.name
+            player.color: player.name
             for player in countries
             if player.tiles
         }
         non_active_countries = {
-            player.hex_color: player.name
+            player.color: player.name
             for player in countries
             if not player.tiles
         }

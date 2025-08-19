@@ -1,7 +1,6 @@
 from discord.ext.commands import Cog, Bot, group, guild_only, Context, command, cooldown, BucketType, CheckFailure, \
     CommandOnCooldown
 
-from modules.country.models.country import Country
 from modules.country.queries.get_country import get_country_by_name, get_countries_by_game_id
 from modules.country.responses import CountryResponses
 from modules.game.queries.get_game import get_active_game_by_channel_id
@@ -154,12 +153,6 @@ class RollCommands(Cog):
         painter = service.painter
         tiler = service.tiler
 
-        countries = [Country(
-            name=country.name,
-            hex_color=country.color,
-            tiles=[tile.code for tile in country.tiles],
-        ) for country in countries]
-
         map_image = painter.draw_map(tiler, countries)
 
         map_file = pillow_to_file(map_image, "map.png")
@@ -195,12 +188,6 @@ class RollCommands(Cog):
         service = ServiceStrategy(game.map)
         painter = service.painter
         tiler = service.tiler
-
-        countries = [Country(
-            name=country.name,
-            hex_color=country.color,
-            tiles=[tile.code for tile in country.tiles],
-        ) for country in countries]
 
         legend_image = painter.draw_legend(tiler, countries)
         countries_file = pillow_to_file(legend_image, "legend.png")

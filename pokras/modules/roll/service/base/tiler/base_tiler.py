@@ -29,6 +29,7 @@ class BaseTiler(Tiler, ABC):
 
     @classmethod
     def get_fill_cords(cls, tile_code: str) -> tuple[int, int]:
+        print(tile_code)
         tile = cls._get_tile(tile_code)
         x, y = tile.get("fill_cords")
         return x, y

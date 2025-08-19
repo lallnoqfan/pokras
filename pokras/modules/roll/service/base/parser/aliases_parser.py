@@ -1,3 +1,4 @@
+from abc import ABC
 from typing import Type
 
 from modules.roll.service.base.parser.base_parser import BaseParser
@@ -5,7 +6,7 @@ from modules.roll.service.base.tiler.aliases_tiler import AliasesTiler
 from modules.roll.service.base.tiler.tiler import Tiler
 
 
-class AliasesParser(BaseParser):
+class AliasesParser(BaseParser, ABC):
     @classmethod
     def parse_tiles(cls, tiler: Type[Tiler], tiles: str) -> list[str]:
         if not issubclass(tiler, AliasesTiler):

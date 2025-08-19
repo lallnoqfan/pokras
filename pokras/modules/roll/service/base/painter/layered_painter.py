@@ -6,7 +6,7 @@ from PIL import Image
 
 from modules.country.models.country import Country
 from modules.roll.service.base.painter.base_painter import BasePainter
-from modules.roll.service.base.painter.layer import Layer
+from modules.roll.service.base.models.layer import Layer
 from modules.roll.service.base.tiler.tiler import Tiler
 
 

@@ -1,5 +1,5 @@
 from config import Paths
-from modules.roll.service.base.painter.layer import Layer
+from modules.roll.service.base.models.layer import Layer
 from modules.roll.service.base.painter.layered_painter import LayeredPainter
 
 
