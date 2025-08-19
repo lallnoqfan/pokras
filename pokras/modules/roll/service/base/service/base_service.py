@@ -70,7 +70,8 @@ class BaseService(Service, ABC):
 
     @classmethod
     def _process_roll(cls, game: Game, country: Country, roll: list[int], response: list[str]) -> int:
-        roll_value = cls.parser.get_roll_value(roll)
+        roll_values = cls.repository.get_roll_values(game)
+        roll_value = cls.parser.get_roll_value(roll, roll_values)
         response.append(RollResponses.roll(roll, roll_value))
         return roll_value
 

@@ -1,12 +1,16 @@
 from re import match, findall
 from typing import Type
 
+from modules.game.service.models.roll_patterns import RollPatterns
+from modules.game.service.models.roll_values import RollValues
 from modules.roll.service.base.parser.parser import Parser
 from modules.roll.service.base.tiler.tiler import Tiler
 from utils.text import cyrillic_to_roman
 
 
 class BaseParser(Parser):
+    roll_patterns = RollPatterns
+
     @classmethod
     def parse_tiles(cls, _: Type[Tiler], tiles: str | list[str]) -> list[str]:
         if isinstance(tiles, list):
@@ -56,18 +60,18 @@ class BaseParser(Parser):
         return tiles
 
     @classmethod
-    def get_roll_value(cls, roll: str | int | list[int]) -> int:
+    def get_roll_value(cls, roll: str | int | list[int], roll_values: RollValues) -> int:
         if isinstance(roll, int):
             roll = str(roll)
         elif isinstance(roll, list):
             roll = "".join(str(r) for r in roll)
 
-        patterns = {}
+        result_roll_value = 0
 
-        result_roll_value = 1
-
-        for pattern in patterns.keys():
+        for name_to_pattern in list(cls.roll_patterns):
+            pattern_id, pattern = name_to_pattern.name, name_to_pattern.value
             if match(pattern, roll):
-                result_roll_value = max(result_roll_value, patterns[pattern])
+                value = getattr(roll_values, pattern_id)
+                result_roll_value = max(result_roll_value, value)
 
         return result_roll_value

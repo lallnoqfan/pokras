@@ -2,7 +2,7 @@ from enum import Enum
 from re import compile
 
 
-class RollPattern(Enum):
+class RollPatterns(Enum):
     one           = compile(r"^.*?(1)$")                                                                # noqa: E221
     two           = compile(r"^.*?(2)$")                                                                # noqa: E221
     three         = compile(r"^.*?(3)$")                                                                # noqa: E221

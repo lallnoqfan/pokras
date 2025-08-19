@@ -14,7 +14,8 @@ class BonusesService(BaseService):
         if not issubclass(cls.tiler, BonusesTiler):
             raise ValueError(f"tiler must be BonusesTiler, got {cls.tiler.__class__.__name__}")
 
-        roll_value = cls.parser.get_roll_value(roll)
+        roll_values = cls.repository.get_roll_values(game)
+        roll_value = cls.parser.get_roll_value(roll, roll_values)
         if roll_value > 0:
             bonus = sum(cls.tiler.get_tile_bonus(tile.code) for tile in country.tiles)
         else:

@@ -1,5 +1,7 @@
 from modules.country.models.country import Country
 from modules.game.models.game import Game
+from modules.game.service.models.roll_values import RollValues
+from modules.game.service.service import get_roll_values
 from modules.roll.queries.create_tile import create_tile
 from modules.roll.queries.get_tile import get_tile
 from modules.roll.queries.update_tile import update_tile_owner
@@ -24,3 +26,7 @@ class BaseRepository(Repository):
             create_tile(tile_code, game.id, country.id)
         else:
             update_tile_owner(game.id, tile_code, country.id)
+
+    @classmethod
+    def get_roll_values(cls, game: Game) -> RollValues:
+        return get_roll_values(game)
