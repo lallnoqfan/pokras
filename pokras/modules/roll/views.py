@@ -10,6 +10,7 @@ from modules.roll.service.strategy import ServiceStrategy
 from utils.checks import has_active_game
 from utils.discord import pillow_to_file
 from utils.random import dices
+from utils.text import Tags as T
 
 
 class RollCommands(Cog):
@@ -149,6 +150,79 @@ class RollCommands(Cog):
             # todo: this should not work this hardcoded-like way
             #       later it will be great to separate all map render logic out of endpoint
             await ctx.invoke(self.map)
+
+    @command(name="артефакты")
+    async def roll_artifacts(self, ctx: Context, artifact_sites: int):
+        """
+        Ролл на артефакты с подсветкой дропа
+
+        Args:
+            artifact_sites: количество точек сбора артефактов
+        """
+        ARTIFACTS = {
+            1: ['Медуза (М)', 'Каменный цветок (КЦ)', 'Ночная звезда (НЗ)'],
+            3: ['Бенгальский огонь (БО)', 'Вспышка (В)', 'Лунный свет (ЛС)'],
+            5: ['Кровь камня (КК)', 'Ломоть мяса (ЛМ)', 'Душа (Д)'],
+            7: ['Капли (К)', 'Огненный шар (ОШ)', 'Кристалл (КТ)'],
+            9: ['Колючка (КЧ)', 'Кристальная волочка (ККЧ)', 'Морской ёж (МЁ)'],
+        }
+        RARE_ARTIFACTS = {
+            '2 2': 'Колобок',
+            '4 4': 'Пружина',
+            '6 6': 'Пустышка',
+            '8 8': 'Мамины бусы',
+            '0 0': 'Плёнка',
+            '7 6 7': 'Батарейка',
+            '6 7 6': 'Компас',
+        }
+        ROLL_QUALITY = {
+            1: 0,
+            2: 0,
+            3: 0,
+            4: 0,
+            5: 1,
+            6: 1,
+            7: 1,
+            8: 2,
+            9: 2,
+        }
+
+        seed = ctx.message.id
+        num_rolls = artifact_sites * 2
+        roll = dices(seed, num_rolls)
+
+        messages = [" ".join(map(lambda n: T.code(str(n)), roll)), ""]
+        even_numbers = roll[0::2]
+        odd_numbers = roll[1::2]
+
+        for artifact_quality, artifact_class in zip(even_numbers, odd_numbers):
+            message = f"{T.code(f'{artifact_quality}')} {T.code(f'{artifact_class}')} — "
+            if artifact_class == 0:
+                message += "потеря точки"
+            elif artifact_class % 2 == 0:
+                message += "нет артефакта"
+            elif artifact_quality == 0:
+                message += "нет артефакта"
+            else:
+                artifact_quality = ROLL_QUALITY[artifact_quality]
+                artifact = ARTIFACTS[artifact_class][artifact_quality]
+                message += artifact
+            messages.append(message)
+        messages.append("")
+
+        if artifact_sites < 3:
+            message = "Недостаточно точек для сбора редких артефактов..."
+            messages.append(message)
+
+        else:
+            key_str = " ".join(map(str, roll))
+            for rare_prompt in RARE_ARTIFACTS:
+                if rare_prompt in key_str:
+                    message = f"{T.code(rare_prompt)} — {RARE_ARTIFACTS[rare_prompt]}"
+                    messages.append(message)
+
+        response = "\n".join(messages)
+        await ctx.reply(response)
 
     @command()
     @guild_only()
