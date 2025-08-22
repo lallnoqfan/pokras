@@ -5,29 +5,29 @@ from modules.game.service.models.roll_type import RollType
 
 @dataclass
 class RollValues:
-    one:   int
-    two:   int
-    three: int
-    four:  int
-    five:  int
-    six:   int
-    seven: int
-    eight: int
-    nine:  int
-    zero:  int
+    one:   int = 1
+    two:   int = 1
+    three: int = 1
+    four:  int = 1
+    five:  int = 1
+    six:   int = 1
+    seven: int = 1
+    eight: int = 1
+    nine:  int = 1
+    zero:  int = 1
 
-    double:    int
-    triple:    int
-    quadruple: int
-    quintuple: int
+    double:    int = 3
+    triple:    int = 5
+    quadruple: int = 9
+    quintuple: int = 15
 
-    double_double: int
-    double_triple: int
-    triple_double: int
+    double_double: int = 4
+    double_triple: int = 7
+    triple_double: int = 7
 
-    pali3d: int
-    pali4d: int
-    pali5d: int
+    pali3d: int = 2
+    pali4d: int = 3
+    pali5d: int = 5
 
     @classmethod
     def from_list(cls, values: list[int]):

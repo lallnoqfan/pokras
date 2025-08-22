@@ -22,8 +22,7 @@ class Game(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=False)
 
     map: Mapped[GameMap] = mapped_column(Enum(GameMap, native_enum=False), nullable=False)
-    roll_values: Mapped[str] = mapped_column(String(100), nullable=False,
-                                             default="1,1,1,1,1,1,1,1,1|3,5,9,15|4,7,7|2,3,5")
+    roll_values: Mapped[str] = mapped_column(String(100), nullable=False)
     use_cooldown: Mapped[bool] = mapped_column(Boolean, nullable=False)
     cooldown: Mapped[timedelta] = mapped_column(Interval, nullable=True)
 

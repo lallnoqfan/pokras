@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from discord.ext.commands import Cog, group, guild_only, Context, CheckFailure, BadArgument
 
 from modules.game.models.choices.game_map import GameMap
@@ -5,6 +7,7 @@ from modules.game.queries.create_game import create_game
 from modules.game.queries.get_game import get_active_game_by_channel_id, get_games_by_channel_id, get_game_by_id
 from modules.game.queries.update_game import set_game_inactive, set_game_active
 from modules.game.responses import GameResponses
+from modules.game.service.models.roll_values import RollValues
 from utils.checks import has_active_game, is_admin, has_no_active_games
 
 
@@ -34,8 +37,14 @@ class GameGroup(Cog):
         Args:
             game_map: карта, на которой будет вестись игра
         """
+        # todo: let user set game args such as use_cooldown, cooldown, roll_values, etc
+        # todo: and also move all logic to service
         channel_id = ctx.channel.id
-        game = create_game(channel_id, game_map)
+        roll_values = RollValues()
+        dumped_roll_values = roll_values.dump_to_string()
+        use_cooldown = False
+        cooldown = timedelta(seconds=0)
+        game = create_game(channel_id, game_map, dumped_roll_values, use_cooldown, cooldown)
         response = GameResponses.game_created(game)
         await ctx.send(response)
 
