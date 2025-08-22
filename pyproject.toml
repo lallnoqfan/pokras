@@ -18,6 +18,7 @@ webcolors = "^24.11.1"
 [tool.poetry.group.dev.dependencies]
 websockets = "^15.0.1"
 aiohttp = "^3.12.15"
+memory-profiler = "^0.61.0"
 
 [build-system]
 requires = ["poetry-core"]
