@@ -1,4 +1,4 @@
-from asyncio import TimeoutError
+from asyncio import TimeoutError, run
 from sys import stderr
 
 from websockets import connect, WebSocketException
@@ -36,3 +36,7 @@ async def test_websocket_proxy():
         print("Timeout occurred. Could not establish WebSocket connection.", file=stderr)
     except Exception as e:
         print(f"An unexpected error occurred: {e}", file=stderr)
+
+
+if __name__ == '__main__':
+    run(test_websocket_proxy())

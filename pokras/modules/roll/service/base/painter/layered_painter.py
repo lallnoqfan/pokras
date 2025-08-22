@@ -8,6 +8,7 @@ from modules.country.models.country import Country
 from modules.roll.service.base.painter.base_painter import BasePainter
 from modules.roll.service.base.models.layer import Layer
 from modules.roll.service.base.tiler.tiler import Tiler
+from utils.perf import time_performance
 
 
 class LayeredPainter(BasePainter, ABC):
@@ -18,6 +19,7 @@ class LayeredPainter(BasePainter, ABC):
     FG_LAYERS: ClassVar[tuple[Layer]]
 
     @classmethod
+    @time_performance
     @cache
     def _load_layer(cls, layer: Layer) -> Image.Image:
         return Image.open(layer.file_path).convert("RGBA")

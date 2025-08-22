@@ -10,6 +10,7 @@ from config import Paths
 from modules.country.models.country import Country
 from modules.roll.service.base.painter.painter import Painter
 from modules.roll.service.base.tiler.tiler import Tiler
+from utils.perf import time_performance
 
 
 class BasePainter(Painter, ABC):
@@ -19,6 +20,7 @@ class BasePainter(Painter, ABC):
     FONT = Paths.FONT_CODENAME
 
     @classmethod
+    @time_performance
     @cache
     def _load_map(cls) -> Image.Image:
         if isinstance(cls.TILES_MAP, Path):

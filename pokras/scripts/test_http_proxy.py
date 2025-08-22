@@ -1,4 +1,4 @@
-from asyncio import TimeoutError
+from asyncio import TimeoutError, run
 from sys import stderr
 
 from aiohttp import ClientSession, ClientError
@@ -33,3 +33,7 @@ async def test_http_proxy() -> None:
         print("Timeout occurred. Could not connect to the proxy within 10 seconds.", file=stderr)
     except Exception as e:
         print(f"An unexpected error occurred: {e}", file=stderr)
+
+
+if __name__ == '__main__':
+    run(test_http_proxy())
