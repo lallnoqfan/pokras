@@ -3,6 +3,7 @@ from functools import cache
 from json import load
 
 from modules.roll.service.base.tiler.tiler import Tiler
+from utils.perf import time_performance
 
 
 class BaseTiler(Tiler, ABC):
@@ -10,6 +11,7 @@ class BaseTiler(Tiler, ABC):
     Базовая реализация тайлера
     """
     @classmethod
+    @time_performance
     @cache
     def _load_data(cls) -> dict:
         with cls.DATA_PATH.open("r", encoding="utf-8") as tiles_data:
