@@ -21,7 +21,7 @@ class InfoGroup(Cog):
         response.append(f"Карта: {game.map.name}")
 
         # cooldown
-        cooldown_seconds = round(game.cooldown.total_seconds())
+        cooldown_seconds = round(game.cooldown.total_seconds()) if game.cooldown is not None else 0
         if not game.use_cooldown:
             cd = "Кд: нет"
         elif cooldown_seconds < 60:
