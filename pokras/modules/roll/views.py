@@ -227,7 +227,7 @@ class RollCommands(Cog):
             for rare_prompt in RARE_ARTIFACTS:
                 count = key_str.count(rare_prompt)
                 if count:
-                    message = f"{T.code(rare_prompt)} — {f'{count}x ' if count > 0 else ''}{RARE_ARTIFACTS[rare_prompt]}"
+                    message = f"{T.code(rare_prompt)} — {f'{count}x ' if count > 1 else ''}{RARE_ARTIFACTS[rare_prompt]}"
                     messages.append(message)
 
         response = "\n".join(messages)
