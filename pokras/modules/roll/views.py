@@ -1,5 +1,5 @@
 from discord.ext.commands import Cog, Bot, group, guild_only, Context, command, cooldown, BucketType, CheckFailure, \
-    CommandOnCooldown
+    CommandOnCooldown, BadArgument
 
 from modules.country.queries.get_country import get_country_by_name, get_countries_by_game_id
 from modules.country.responses import CountryResponses
@@ -159,6 +159,14 @@ class RollCommands(Cog):
         Args:
             artifact_sites: количество точек сбора артефактов
         """
+        if artifact_sites < 0:
+            await ctx.reply(f"{artifact_sites}? фо рил?")
+            return
+
+        if artifact_sites > 40:
+            await ctx.reply("на карте столько точек нет шизоидище")
+            return
+
         ARTIFACTS = {
             1: ['Медуза (М)', 'Каменный цветок (КЦ)', 'Ночная звезда (НЗ)'],
             3: ['Бенгальский огонь (БО)', 'Вспышка (В)', 'Лунный свет (ЛС)'],
@@ -223,6 +231,14 @@ class RollCommands(Cog):
 
         response = "\n".join(messages)
         await ctx.reply(response)
+
+    @roll_artifacts.error
+    async def roll_artifacts_error(self, ctx: Context, error: Exception):
+        if isinstance(error, BadArgument):
+            await ctx.reply("RTFM")
+            await ctx.send_help("артефакты")
+        else:
+            await ctx.reply(f"unexpected exception: {error}")
 
     @command()
     @guild_only()
