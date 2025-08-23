@@ -180,8 +180,8 @@ class RollCommands(Cog):
             '6 6': 'Пустышка',
             '8 8': 'Мамины бусы',
             '0 0': 'Плёнка',
-            '7 6 7': 'Батарейка',
-            '6 7 6': 'Компас',
+            '1 2 1': 'Батарейка',
+            '9 8 9': 'Компас',
         }
         ROLL_QUALITY = {
             1: 0,
@@ -225,8 +225,9 @@ class RollCommands(Cog):
         else:
             key_str = " ".join(map(str, roll))
             for rare_prompt in RARE_ARTIFACTS:
-                if rare_prompt in key_str:
-                    message = f"{T.code(rare_prompt)} — {RARE_ARTIFACTS[rare_prompt]}"
+                count = key_str.count(rare_prompt)
+                if count:
+                    message = f"{T.code(rare_prompt)} — {f'{count}x ' if count > 0 else ''}{RARE_ARTIFACTS[rare_prompt]}"
                     messages.append(message)
 
         response = "\n".join(messages)
