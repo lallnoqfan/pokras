@@ -5,7 +5,7 @@ from config import BotConfig, ConnectionConfig
 from modules.game.views import GameCommands
 from modules.country.views import CountryCommands
 from modules.roll.views import RollCommands
-from modules.ping.views import TestCommands
+from modules.tests.views import TestCommands
 
 
 class App(Bot):

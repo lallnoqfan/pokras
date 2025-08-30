@@ -11,6 +11,10 @@ class Tags:
         return f"**{text}**"
 
     @staticmethod
+    def italic(text: str) -> str:
+        return f"*{text}*"
+
+    @staticmethod
     def code(text: str) -> str:
         return f"`{text}`"
 
