@@ -1,46 +1,43 @@
 from abc import ABC
 from pathlib import Path
-from typing import Type
 
 from PIL import Image, ImageDraw, ImageFont
 from webcolors import hex_to_rgb
 
-from config import Paths
-from modules.country.models.country import Country
+from modules.roll.service.base.models.gamestate_things import CountryState
+from modules.roll.service.base.models.utils_things import Layer
 from modules.roll.service.base.painter.painter import Painter
-from modules.roll.service.base.tiler.tiler import Tiler
+from modules.roll.service.base.repository.repository import Repository
+from modules.roll.service.base.tiler.abc.tiler import Tiler
 
 
 class BasePainter(Painter, ABC):
     """
     Базовая реализация покрасчика. Рисует карту без легенды.
     """
-    FONT = Paths.FONT_CODENAME
+    def __init__(self, font_path: Path, map_layer: Layer):
+        super().__init__(font_path, map_layer)
 
-    @classmethod
-    def _load_map(cls) -> Image.Image:
-        if isinstance(cls.TILES_MAP, Path):
-            return Image.open(cls.TILES_MAP).convert("RGBA")
-        return Image.open(cls.TILES_MAP.file_path).convert("RGBA")
+    def _load_map(self) -> Image.Image:
+        return Image.open(self.map_layer.file_path).convert("RGBA")
 
-    @classmethod
-    def draw_map(cls, tiler: Type[Tiler], countries: list[Country]) -> Image.Image:
-        map_image = cls._load_map().copy()
+    def draw_map(self, countries: list[CountryState], tiler: Tiler, repository: Repository) -> Image.Image:
+        map_image = self._load_map().copy()
 
-        if isinstance(cls.TILES_MAP, Path):
+        if isinstance(self.map_layer, Path):
             dx, dy = 0, 0
         else:
-            dx, dy = cls.TILES_MAP.paste_bias
-        for player in countries:
-            for tile_code in player.tiles:
-                x, y = tiler.get_fill_cords(tile_code.code)
+            dx, dy = self.map_layer.paste_bias
+        for country in countries:
+            for tile in repository.get_country_tiles(country):
+                tile_code = tile.code
+                x, y = tiler.get_fill_cords(tile_code)
                 x, y = x - dx, y - dy
-                ImageDraw.floodfill(map_image, (x, y), (*hex_to_rgb(player.color), 255))
+                ImageDraw.floodfill(map_image, (x, y), (*hex_to_rgb(country.color), 255))
 
         return map_image
 
-    @classmethod
-    def _draw_country_title(cls, country_name: str, hex_color: str = "#000000", skip_key: bool = False) -> Image.Image:
+    def _draw_country_title(self, country_name: str, hex_color: str = "#000000", skip_key: bool = False) -> Image.Image:
         w, h = 960, 50
         img = Image.new("RGB", (w, h), (255, 255, 255))
 
@@ -56,22 +53,21 @@ class BasePainter(Painter, ABC):
             xy=(55 if not skip_key else 10, 0),
             text=country_name,
             fill=(0, 0, 0),
-            font=ImageFont.truetype(cls.FONT, 40, encoding="unic"),
+            font=ImageFont.truetype(self.font_path, 40, encoding="unic"),
         )
 
         return img
 
-    @classmethod
-    def draw_legend(cls, tiler: Type[Tiler], countries: list[Country]) -> Image.Image:
+    def draw_legend(self, countries: list[CountryState], tiler: Tiler, repository: Repository) -> Image.Image:
         active_countries = {
-            player.color: player.name
-            for player in countries
-            if player.tiles
+            country.color: country.name
+            for country in countries
+            if repository.get_country_tiles(country)
         }
         non_active_countries = {
-            player.color: player.name
-            for player in countries
-            if not player.tiles
+            country.color: country.name
+            for country in countries
+            if country.color not in active_countries
         }
 
         active_countries_exists = len(active_countries) > 0
@@ -88,12 +84,12 @@ class BasePainter(Painter, ABC):
         i = 0
 
         if active_countries_exists:
-            title_img = cls._draw_country_title("Активные:", skip_key=True)
+            title_img = self._draw_country_title("Активные:", skip_key=True)
             img.paste(title_img, (0, i * 50))
             i += 1
 
-        for key in active_countries:
-            title_img = cls._draw_country_title(active_countries[key], key)
+        for color, name in active_countries.items():
+            title_img = self._draw_country_title(name, color)
             img.paste(title_img, (0, i * 50))
             i += 1
 
@@ -101,12 +97,12 @@ class BasePainter(Painter, ABC):
             i += 1
 
         if non_active_countries_exists:
-            title_img = cls._draw_country_title("Без территорий:", skip_key=True)
+            title_img = self._draw_country_title("Без территорий:", skip_key=True)
             img.paste(title_img, (0, i * 50))
             i += 1
 
-        for key in non_active_countries:
-            title_img = cls._draw_country_title(non_active_countries[key], key)
+        for color, name in non_active_countries.items():
+            title_img = self._draw_country_title(name, color)
             img.paste(title_img, (0, i * 50))
             i += 1
 

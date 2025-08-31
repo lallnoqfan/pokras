@@ -7,6 +7,7 @@ from sqlalchemy.types import Enum
 
 from db.base import Base
 from modules.game.models.choices.game_map import GameMap
+from modules.roll.service.base.models.gamestate_things import GameState
 
 if TYPE_CHECKING:
     from modules.country.models.country import Country
@@ -41,3 +42,14 @@ class Game(Base):
 
     def __repr__(self):
         return f"Game(id={self.id}, channel={self.channel}, is_active={self.is_active}, map={self.map})"
+
+    def cast(self) -> GameState:
+        return GameState(
+            id=self.id,
+            channel=self.channel,
+            is_active=self.is_active,
+            map=self.map,
+            roll_values=self.roll_values,
+            use_cooldown=self.use_cooldown,
+            cooldown=self.cooldown,
+        )

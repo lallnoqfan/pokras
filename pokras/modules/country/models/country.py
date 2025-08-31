@@ -4,6 +4,7 @@ from sqlalchemy import UniqueConstraint, String, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.base import Base
+from modules.roll.service.base.models.gamestate_things import CountryState
 
 if TYPE_CHECKING:
     from modules.game.models.game import Game
@@ -32,3 +33,12 @@ class Country(Base):
 
     def __repr__(self):
         return f"Country(id={self.id}, game_id={self.game_id}, name='{self.name}', color='{self.color}')"
+
+    def cast(self) -> CountryState:
+        return CountryState(
+            id=self.id,
+            name=self.name,
+            color=self.color,
+            game_id=self.game_id,
+            creator_id=self.creator_id,
+        )

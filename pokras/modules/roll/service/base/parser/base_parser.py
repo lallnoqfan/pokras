@@ -1,23 +1,17 @@
 from re import match, findall
-from typing import Type
 
 from modules.game.service.models.roll_patterns import RollPatterns
 from modules.game.service.models.roll_values import RollValues
 from modules.roll.service.base.parser.parser import Parser
-from modules.roll.service.base.tiler.tiler import Tiler
+from modules.roll.service.base.tiler.abc.tiler import Tiler
 from utils.text import cyrillic_to_roman
 
 
 class BaseParser(Parser):
     roll_patterns = RollPatterns
 
-    @classmethod
-    def parse_tiles(cls, _: Type[Tiler], tiles: str | list[str]) -> list[str]:
-        if isinstance(tiles, list):
-            result = []
-            for t in tiles:
-                result.extend(cls.parse_tiles(_, t))
-            return result
+    def parse_tiles(self, _: Tiler, tiles: list[str]) -> list[str]:
+        tiles = " ".join(tiles)
 
         tiles = tiles.lower()  # "2B 3Ф" -> "2b 3ф"
         tiles = cyrillic_to_roman(tiles)  # "2b 3ф" -> "2b 3f"
@@ -56,11 +50,9 @@ class BaseParser(Parser):
         tiles.sort()
         # todo: it would be great if we could preserve initial order of tiles tiles as it is in user's input
         #       for now, after parsing, initial order is totally lost, so should probably be fixed
-
         return tiles
 
-    @classmethod
-    def get_roll_value(cls, roll: str | int | list[int], roll_values: RollValues) -> int:
+    def get_roll_value(self, roll: str | int | list[int], roll_values: RollValues) -> int:
         if isinstance(roll, int):
             roll = str(roll)
         elif isinstance(roll, list):
@@ -68,7 +60,7 @@ class BaseParser(Parser):
 
         result_roll_value = 0
 
-        for name_to_pattern in list(cls.roll_patterns):
+        for name_to_pattern in list(self.roll_patterns):
             pattern_id, pattern = name_to_pattern.name, name_to_pattern.value
             if match(pattern, roll):
                 value = getattr(roll_values, pattern_id)

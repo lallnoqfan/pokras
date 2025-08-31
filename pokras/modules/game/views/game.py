@@ -38,13 +38,12 @@ class GameGroup(Cog):
             game_map: карта, на которой будет вестись игра
         """
         # todo: let user set game args such as use_cooldown, cooldown, roll_values, etc
-        # todo: and also move all logic to service
+        # and also move all logic to service
         channel_id = ctx.channel.id
-        roll_values = RollValues()
-        dumped_roll_values = roll_values.dump_to_string()
+        roll_values = RollValues().dump_to_string()
         use_cooldown = False
         cooldown = timedelta(seconds=0)
-        game = create_game(channel_id, game_map, dumped_roll_values, use_cooldown, cooldown)
+        game = create_game(channel_id, game_map, roll_values, use_cooldown, cooldown)
         response = GameResponses.game_created(game)
         await ctx.send(response)
 

@@ -1,12 +1,10 @@
 from discord.ext.commands import Cog, Bot, group, guild_only, Context, command, cooldown, BucketType, CheckFailure, \
-    CommandOnCooldown, BadArgument
+    CommandOnCooldown, BadArgument, MissingRequiredArgument
 
-from modules.country.queries.get_country import get_country_by_name, get_countries_by_game_id
-from modules.country.responses import CountryResponses
+from modules.country.queries.get_country import get_countries_by_game_id
 from modules.game.queries.get_game import get_active_game_by_channel_id
-from modules.roll.responses import RollResponses
-from modules.roll.service.base.models.prompt import Prompt
-from modules.roll.service.strategy import ServiceStrategy
+from modules.roll.service.base.models.api_things import AgainstRollPrompt, ExpansionRollPrompt, TilesRollPrompt
+from modules.roll.service.strategy import ServiceFactory
 from utils.checks import has_active_game
 from utils.discord import pillow_to_file
 from utils.random import dices
@@ -25,10 +23,10 @@ class RollCommands(Cog):
         5d10 ролл
         """
         if ctx.invoked_subcommand is None:
-            await ctx.reply("try !help roll")
+            await ctx.send_help("roll")
 
     @roll_group.command(name="tiles", aliases=["тайлы"])
-    async def roll_tiles(self, ctx: Context, country_name: str | None, *tiles: str | None):
+    async def roll_tiles(self, ctx: Context, country_name: str, *tiles: str):
         """
         Ролл на список тайлов (e.g. 1а 2bc 3деф)
 
@@ -36,64 +34,14 @@ class RollCommands(Cog):
             country_name: название страны, за которую распределяются захваты
             tiles: Список тайлов
         """
-        if not country_name:
-            response = CountryResponses.missing_name()
-            await ctx.reply(response)
-            return
-
-        if not tiles:
-            response = RollResponses.missing_tiles()
-            await ctx.reply(response)
-            return
-
         game = get_active_game_by_channel_id(ctx.channel.id)
-        country = get_country_by_name(game.id, country_name)
-        if not country:  # todo: move to service
-            response = CountryResponses.country_not_found(country_name)
-            await ctx.reply(response)
-            return
-
         roll = dices(ctx.message.id)
-        tiles = " ".join(tiles)
+        tiles = list(tiles)
 
-        service = ServiceStrategy(game)
-        service_response = service.add_tiles(game, country, Prompt(
-            roll=roll, timestamp=ctx.message.created_at,
-        ), tiles)
-        response = service_response.messages
-        state_changed = service_response.map_state_changed
-
-        response = "\n" + "\n".join(response)
-        await ctx.reply(response)
-
-        if state_changed:
-            # todo: this should not work this hardcoded-like way
-            #       later it will be great to separate all map render logic out of endpoint
-            await ctx.invoke(self.map)
-
-    @roll_group.command(name="expansion", aliases=["покрас", "расширение"])
-    async def roll_expansion(self, ctx: Context, country_name: str | None):
-        """
-        Ролл на расширение по нейтральным территориям.
-        Наролленные захваты распределяются по доступным нейтральным территориям, если такие есть.
-        """
-        if not country_name:
-            response = CountryResponses.missing_name()
-            await ctx.reply(response)
-            return
-
-        game = get_active_game_by_channel_id(ctx.channel.id)
-        country = get_country_by_name(game.id, country_name)
-        if not country:  # todo: move to service
-            response = CountryResponses.country_not_found(country_name)
-            await ctx.reply(response)
-            return
-
-        roll = dices(ctx.message.id)
-
-        service = ServiceStrategy(game)
-        service_response = service.add_expansion(game, country, Prompt(
-            roll=roll, timestamp=ctx.message.created_at,
+        service = ServiceFactory.build_service(game)
+        service_response = service.add_tiles(game.cast(), TilesRollPrompt(
+            roll=roll, timestamp=ctx.message.created_at, country=country_name, tiles=tiles,
+            roll_value=0,
         ))
         response = service_response.messages
         state_changed = service_response.map_state_changed
@@ -102,44 +50,36 @@ class RollCommands(Cog):
         await ctx.reply(response)
 
         if state_changed:
-            # todo: this should not work this hardcoded-like way
-            #       later it will be great to separate all map render logic out of endpoint
-            await ctx.invoke(self.map)
+            await ctx.invoke(self.draw_map)
 
-    @roll_group.command(name="against", aliases=["против"])
-    async def roll_against(self, ctx: Context, country_name: str | None, target_name: str | None):
-        """
-        Ролл против другой страны
-        (e.g. "против швайнохаоситов", если в игре есть страна с названием "швайнохаоситы")
-        """
-        if not country_name:
-            response = CountryResponses.missing_name()
+    @roll_tiles.error
+    async def roll_tiles_error(self, ctx: Context, error: Exception):
+        if isinstance(error, MissingRequiredArgument):
+            response = f"{error.param.name} is missing"
             await ctx.reply(response)
-            return
 
-        if not target_name:
-            response = RollResponses.missing_target()
+        elif isinstance(error, CheckFailure):
+            pass
+
+        else:
+            response = f"{type(error)}: {error}"
             await ctx.reply(response)
-            return
+            raise error
 
+    @roll_group.command(name="expansion", aliases=["покрас", "расширение"])
+    async def roll_expansion(self, ctx: Context, country_name: str):
+        """
+        Ролл на расширение по нейтральным территориям.
+        Наролленные захваты распределяются по доступным нейтральным территориям, если такие есть.
+        """
         game = get_active_game_by_channel_id(ctx.channel.id)
-        country = get_country_by_name(game.id, country_name)
-        if not country:  # todo: move to service
-            response = CountryResponses.country_not_found(country_name)
-            await ctx.reply(response)
-            return
-        target = get_country_by_name(game.id, target_name)
-        if not target:
-            response = CountryResponses.country_not_found(target_name)
-            await ctx.reply(response)
-            return
-
         roll = dices(ctx.message.id)
 
-        service = ServiceStrategy(game)
-        service_response = service.add_against(game, country, Prompt(
-            roll=roll, timestamp=ctx.message.created_at,
-        ), target)
+        service = ServiceFactory.build_service(game)
+        service_response = service.add_expansion(game.cast(), ExpansionRollPrompt(
+            roll=roll, timestamp=ctx.message.created_at, country=country_name,
+            roll_value=0,
+        ))
         response = service_response.messages
         state_changed = service_response.map_state_changed
 
@@ -147,9 +87,58 @@ class RollCommands(Cog):
         await ctx.reply(response)
 
         if state_changed:
-            # todo: this should not work this hardcoded-like way
-            #       later it will be great to separate all map render logic out of endpoint
-            await ctx.invoke(self.map)
+            await ctx.invoke(self.draw_map)
+
+    @roll_expansion.error
+    async def roll_expansion_error(self, ctx: Context, error: Exception):
+        if isinstance(error, MissingRequiredArgument):
+            response = f"{error.param.name} is missing"
+            await ctx.reply(response)
+
+        elif isinstance(error, CheckFailure):
+            pass
+
+        else:
+            response = f"{type(error)}: {error}"
+            await ctx.reply(response)
+            raise error
+
+    @roll_group.command(name="against", aliases=["против"])
+    async def roll_against(self, ctx: Context, country_name: str, target_name: str):
+        """
+        Ролл против другой страны
+        (e.g. "против швайнохаоситов", если в игре есть страна с названием "швайнохаоситы")
+        """
+        game = get_active_game_by_channel_id(ctx.channel.id)
+        roll = dices(ctx.message.id)
+
+        service = ServiceFactory.build_service(game)
+        service_response = service.add_against(game.cast(), AgainstRollPrompt(
+            roll=roll, timestamp=ctx.message.created_at, country=country_name, target=target_name,
+            roll_value=0,
+        ))
+        response = service_response.messages
+        state_changed = service_response.map_state_changed
+
+        response = "\n" + "\n".join(response)
+        await ctx.reply(response)
+
+        if state_changed:
+            await ctx.invoke(self.draw_map)
+
+    @roll_against.error
+    async def roll_against_error(self, ctx: Context, error: Exception):
+        if isinstance(error, MissingRequiredArgument):
+            response = f"{error.param.name} is missing"
+            await ctx.reply(response)
+
+        elif isinstance(error, CheckFailure):
+            pass
+
+        else:
+            response = f"{type(error)}: {error}"
+            await ctx.reply(response)
+            raise error
 
     @command(name="артефакты")
     async def roll_artifacts(self, ctx: Context, artifact_sites: int):
@@ -227,7 +216,8 @@ class RollCommands(Cog):
             for rare_prompt in RARE_ARTIFACTS:
                 count = key_str.count(rare_prompt)
                 if count:
-                    message = f"{T.code(rare_prompt)} — {f'{count}x ' if count > 1 else ''}{RARE_ARTIFACTS[rare_prompt]}"
+                    message = (f"{T.code(rare_prompt)} — "
+                               f"{f'{count}x ' if count > 1 else ''}{RARE_ARTIFACTS[rare_prompt]}")
                     messages.append(message)
 
         response = "\n".join(messages)
@@ -235,35 +225,44 @@ class RollCommands(Cog):
 
     @roll_artifacts.error
     async def roll_artifacts_error(self, ctx: Context, error: Exception):
+        if isinstance(error, MissingRequiredArgument):
+            response = f"{error.param.name} is missing"
+            await ctx.reply(response)
+
         if isinstance(error, BadArgument):
             await ctx.reply("RTFM")
             await ctx.send_help("артефакты")
-        else:
-            await ctx.reply(f"unexpected exception: {error}")
 
-    @command()
+        else:
+            response = f"{type(error)}: {error}"
+            await ctx.reply(response)
+            raise error
+
+    @command(name="map")
     @guild_only()
     @has_active_game()
     @cooldown(1, 30, BucketType.channel)
-    async def map(self, ctx: Context):
+    async def draw_map(self, ctx: Context):
         """
         Постит карту активной игры
         """
         # todo: take game id as optional argument so it can be used not just for active game
         game = get_active_game_by_channel_id(ctx.channel.id)
         countries = get_countries_by_game_id(game.id)
+        countries = list(map(lambda country: country.cast(), countries))
 
-        service = ServiceStrategy(game)
+        service = ServiceFactory.build_service(game)
         painter = service.painter
         tiler = service.tiler
+        repository = service.repository
 
-        map_image = painter.draw_map(tiler, countries)
+        map_image = painter.draw_map(countries, tiler, repository)
 
         map_file = pillow_to_file(map_image, "map.png")
         await ctx.reply(file=map_file)
 
-    @map.error
-    async def map_error(self, ctx: Context, error: Exception):
+    @draw_map.error
+    async def draw_map_error(self, ctx: Context, error: Exception):
         if isinstance(error, CheckFailure):
             pass
 
@@ -271,13 +270,15 @@ class RollCommands(Cog):
             await ctx.reply("You can only use this command once every 30 seconds per channel.")
 
         else:
+            response = f"{type(error)}: {error}"
+            await ctx.reply(response)
             raise error
 
-    @command()
+    @command(name="legend")
     @guild_only()
     @has_active_game()
     @cooldown(1, 30, BucketType.channel)
-    async def legend(self, ctx: Context):
+    async def draw_legend(self, ctx: Context):
         """
         Постит легенду стран в активной игре
         """
@@ -288,17 +289,19 @@ class RollCommands(Cog):
         if not countries:
             await ctx.reply("There are no countries in this game, so... no legend i guess?")
             return
+        countries = list(map(lambda country: country.cast(), countries))
 
-        service = ServiceStrategy(game)
+        service = ServiceFactory.build_service(game)
         painter = service.painter
         tiler = service.tiler
+        repository = service.repository
 
-        legend_image = painter.draw_legend(tiler, countries)
+        legend_image = painter.draw_legend(countries, tiler, repository)
         countries_file = pillow_to_file(legend_image, "legend.png")
         await ctx.reply(file=countries_file)
 
-    @legend.error
-    async def legend_error(self, ctx: Context, error: Exception):
+    @draw_legend.error
+    async def draw_legend_error(self, ctx: Context, error: Exception):
         if isinstance(error, CheckFailure):
             pass
 
@@ -306,4 +309,6 @@ class RollCommands(Cog):
             await ctx.reply("You can only use this command once every 30 seconds per channel.")
 
         else:
+            response = f"{type(error)}: {error}"
+            await ctx.reply(response)
             raise error

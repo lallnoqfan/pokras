@@ -4,6 +4,7 @@ from sqlalchemy import UniqueConstraint, String, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.base import Base
+from modules.roll.service.base.models.gamestate_things import TileState
 
 if TYPE_CHECKING:
     from modules.game.models.game import Game
@@ -27,3 +28,11 @@ class Tile(Base):
 
     def __repr__(self):
         return f"Tile(id={self.id}, code='{self.code}', game_id={self.game_id}, owner_id={self.owner_id})"
+
+    def cast(self) -> TileState:
+        return TileState(
+            id=self.id,
+            code=self.code,
+            game_id=self.game_id,
+            owner_id=self.owner_id,
+        )

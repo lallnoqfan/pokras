@@ -2,6 +2,7 @@ from utils.text import Tags as T
 
 
 class RollResponses:
+    # todo: separate logic responses from validation responses
 
     # ========= MISSING ARGUMENTS =========
 
@@ -81,9 +82,8 @@ class RollResponses:
         return response
 
     @classmethod
-    def roll_with_bonus(cls, nums: list[int], roll_value: int, bonus: int, total_value: int) -> str:
-        response = cls.roll(nums, roll_value)
-        response += f"\n{roll_value} + {bonus} = {total_value} tile{'s' if total_value != 1 else ''}"
+    def bonus(cls, roll_value: int, bonus: int, total_value: int) -> str:
+        response = f"{roll_value} + {bonus} = {total_value} tile{'s' if total_value != 1 else ''}"
         return response
 
     @staticmethod

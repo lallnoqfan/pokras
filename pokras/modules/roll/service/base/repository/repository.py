@@ -1,38 +1,65 @@
-from abc import ABC, abstractmethod
 from datetime import datetime
 
-from modules.country.models.country import Country
-from modules.game.models.game import Game
+from modules.country.queries.get_country import get_country_by_name, get_country
+from modules.game.queries.get_game import get_game_by_id
 from modules.game.service.models.roll_values import RollValues
+from modules.game.service.service import get_roll_values
 from modules.roll.models.last_roll import LastRoll
+from modules.roll.queries.create_tile import create_tile
+from modules.roll.queries.get_last_roll import get_last_roll
+from modules.roll.queries.get_tile import get_tile
+from modules.roll.queries.update_last_roll import set_last_roll_timestamp
+from modules.roll.queries.update_tile import update_tile_owner
+from modules.roll.service.base.models.gamestate_things import GameState, CountryState, TileState
 
 
-class Repository(ABC):
+class Repository:
     """
-    Абстрактный класс, отвечающий за чтение состояния игры.
+    Класс, отвечающий за чтение состояния игры.
     Прячет внутри себя доступ к бд / другому хранилищу состояния.
     """
     @classmethod
-    @abstractmethod
-    def get_tile_owner(cls, game: Game, tile_code: str) -> Country | None:
-        ...
+    def get_country_by_name(cls, game: GameState, country_name: str) -> CountryState | None:
+        country = get_country_by_name(game.id, country_name)
+        if not country:
+            return None
+        return country.cast()
 
     @classmethod
-    @abstractmethod
-    def set_tile_owner(cls, game: Game, country: Country, tile_code: str) -> None:
-        ...
+    def get_tile_owner(cls, game: GameState, tile_code: str) -> CountryState | None:
+        tile = get_tile(tile_code, game.id)
+        if not tile:
+            return None
+        return tile.owner.cast()
 
     @classmethod
-    @abstractmethod
-    def get_roll_values(cls, game: Game) -> RollValues:
-        ...
+    def set_tile_owner(cls, game: GameState, country: CountryState, tile_code: str) -> None:
+        tile = get_tile(tile_code, game.id)
+        if not tile:
+            create_tile(tile_code, game.id, country.id)
+        else:
+            update_tile_owner(game.id, tile_code, country.id)
 
     @classmethod
-    @abstractmethod
-    def get_last_roll(cls, game: Game, country: Country) -> LastRoll | None:
-        ...
+    def get_roll_values(cls, game: GameState) -> RollValues:
+        game = get_game_by_id(game.id)
+        return get_roll_values(game)
 
     @classmethod
-    @abstractmethod
-    def set_last_roll(cls, game: Game, country: Country, timestamp: datetime) -> None:
-        ...
+    def get_last_roll(cls, game: GameState, country: CountryState) -> LastRoll | None:
+        # todo replace with dataclass model
+        return get_last_roll(game.id, country.id)
+
+    @classmethod
+    def set_last_roll(cls, game: GameState, country: CountryState, timestamp: datetime) -> None:
+        last_roll = get_last_roll(game.id, country.id)
+        if last_roll is None:
+            return
+        set_last_roll_timestamp(last_roll.id, timestamp)
+
+    @classmethod
+    def get_country_tiles(cls, country: CountryState) -> list[TileState]:
+        country = get_country(country.id)
+        if country is None:
+            return []
+        return list(map(lambda tile: tile.cast(), country.tiles))
