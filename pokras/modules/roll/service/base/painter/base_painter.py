@@ -9,6 +9,7 @@ from modules.roll.service.base.models.utils_things import Layer
 from modules.roll.service.base.painter.painter import Painter
 from modules.roll.service.base.repository.repository import Repository
 from modules.roll.service.base.tiler.abc.tiler import Tiler
+from utils.perf import method_performance
 
 
 class BasePainter(Painter, ABC):
@@ -21,6 +22,7 @@ class BasePainter(Painter, ABC):
     def _load_map(self) -> Image.Image:
         return Image.open(self.map_layer.file_path).convert("RGBA")
 
+    @method_performance
     def draw_map(self, countries: list[CountryState], tiler: Tiler, repository: Repository) -> Image.Image:
         map_image = self._load_map().copy()
 
@@ -58,6 +60,7 @@ class BasePainter(Painter, ABC):
 
         return img
 
+    @method_performance
     def draw_legend(self, countries: list[CountryState], tiler: Tiler, repository: Repository) -> Image.Image:
         active_countries = {
             country.color: country.name

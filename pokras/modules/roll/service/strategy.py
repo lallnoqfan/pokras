@@ -25,6 +25,7 @@ from modules.roll.service.eu_classic.config import EuClassicConfig
 from modules.roll.service.korea.config import KoreaConfig
 from modules.roll.service.ops_ass.config import OpsAssConfig
 from modules.roll.service.stalker.config import StalkerConfig
+from utils.perf import class_method_performance
 
 
 class ServiceFactory:
@@ -32,6 +33,7 @@ class ServiceFactory:
     Фабрика сервиса по типу карты и параметрам игры
     """
     @classmethod
+    @class_method_performance
     def get_service_config(cls, game: Game) -> Type[ServiceConfig]:
         match game.map:
             case GameMap.eu_classic:

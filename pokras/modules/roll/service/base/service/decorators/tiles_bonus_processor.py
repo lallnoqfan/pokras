@@ -2,9 +2,11 @@ from modules.roll.responses import RollResponses
 from modules.roll.service.base.models.api_things import RollPrompt
 from modules.roll.service.base.models.gamestate_things import GameState, CountryState
 from modules.roll.service.base.service.abc.bonus_processor import BonusProcessor
+from utils.perf import method_performance
 
 
 class TilesBonusProcessor(BonusProcessor):
+    @method_performance
     def process_bonus(self, game: GameState, country: CountryState, prompt: RollPrompt) -> tuple[int, str]:
         country_tiles = self.repository.get_country_tiles(country)
         bonus = sum(self.tiler.get_tile_bonus(tile.code) for tile in country_tiles)

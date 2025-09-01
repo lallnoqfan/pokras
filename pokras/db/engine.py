@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker
 
 from config import AppConfig, Paths
 
-engine = create_engine(f"sqlite:///{Paths.SQLITE_DB}", echo=AppConfig.DEBUG)
+engine = create_engine(f"sqlite:///{Paths.SQLITE_DB}", echo=AppConfig.VERBOSE_DB)
 Session = sessionmaker(bind=engine)
 session = Session()
 

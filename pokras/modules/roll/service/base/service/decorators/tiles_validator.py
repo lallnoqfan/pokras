@@ -4,6 +4,7 @@ from modules.roll.service.base.models.api_things import RollResponse, AgainstRol
     TilesRollPrompt
 from modules.roll.service.base.models.gamestate_things import GameState, CountryState
 from modules.roll.service.base.service.abc.validator import Validator
+from utils.perf import method_performance
 
 
 class TilesValidator(Validator):
@@ -36,6 +37,7 @@ class TilesValidator(Validator):
             response.append(RollResponses.capture_own_tiles(invalid_tiles))
         return valid_tiles
 
+    @method_performance
     def validate_tiles(self, game: GameState, prompt: TilesRollPrompt) -> RollResponse | None:
         response = []
 
@@ -54,6 +56,7 @@ class TilesValidator(Validator):
 
         return None
 
+    @method_performance
     def validate_expansion(self, game: GameState, prompt: ExpansionRollPrompt) -> RollResponse | None:
         response = []
 
@@ -69,6 +72,7 @@ class TilesValidator(Validator):
 
         return None
 
+    @method_performance
     def validate_against(self, game: GameState, prompt: AgainstRollPrompt) -> RollResponse | None:
         response = []
 

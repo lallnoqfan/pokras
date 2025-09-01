@@ -4,10 +4,10 @@ from pathlib import Path
 from memory_profiler import profile
 
 from config import Paths
-from utils.perf import time_performance
+from utils.perf import function_performance
 
 
-@time_performance
+@function_performance
 @profile
 def load_jsons(jsons: list[Path]):
     data = []

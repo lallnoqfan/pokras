@@ -8,6 +8,7 @@ from modules.roll.service.base.painter.base_painter import BasePainter
 from modules.roll.service.base.models.utils_things import Layer
 from modules.roll.service.base.repository.repository import Repository
 from modules.roll.service.base.tiler.abc.tiler import Tiler
+from utils.perf import method_performance
 
 
 class LayeredPainter(BasePainter):
@@ -24,6 +25,7 @@ class LayeredPainter(BasePainter):
     def _load_layer(layer: Layer) -> Image.Image:
         return Image.open(layer.file_path).convert("RGBA")
 
+    @method_performance
     def draw_map(self, countries: list[CountryState], tiler: Tiler, repository: Repository) -> Image.Image:
         map_image = self._load_layer(self.bg_layers[0]).copy()
 

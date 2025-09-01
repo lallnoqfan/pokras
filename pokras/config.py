@@ -11,7 +11,8 @@ def _getenv_bool(key: str, default_value: bool = False) -> bool:
 
 
 class AppConfig:
-    DEBUG = _getenv_bool("DEBUG")
+    VERBOSE_DB = _getenv_bool("VERBOSE_DB")
+    VERBOSE_PERFORMANCE = _getenv_bool("VERBOSE_PERFORMANCE")
 
 
 class BotConfig:

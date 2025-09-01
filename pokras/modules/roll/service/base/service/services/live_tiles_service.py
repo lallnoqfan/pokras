@@ -5,6 +5,7 @@ from modules.roll.service.base.models.api_things import TilesRollPrompt, Expansi
     RollResponse
 from modules.roll.service.base.models.gamestate_things import GameState
 from modules.roll.service.base.service.abc.service import Service
+from utils.perf import method_performance
 
 
 class LiveTilesService(Service):
@@ -12,6 +13,7 @@ class LiveTilesService(Service):
     Real time сервис для карт с именованными тайлами.
     """
     # all that stuff might be quite slow... should consider adding db locks
+    @method_performance
     def add_tiles(self, game: GameState, prompt: TilesRollPrompt) -> RollResponse:
         response = []
         state_changed = False
@@ -61,7 +63,6 @@ class LiveTilesService(Service):
 
         if roll_value == initial_roll_value:
             ok = False
-            # todo add roll failed message
         elif roll_value > 0:
             ok = True
             response.append(RollResponses.roll_value_surplus(roll_value))
@@ -70,6 +71,7 @@ class LiveTilesService(Service):
 
         return RollResponse(ok=ok, map_state_changed=state_changed, messages=response)
 
+    @method_performance
     def add_expansion(self, game: GameState, prompt: ExpansionRollPrompt) -> RollResponse:
         # this thing chooses somewhat nearest tiles to the country
         # the way it interprets the "nearest" though is kinda not the best one
@@ -127,7 +129,6 @@ class LiveTilesService(Service):
 
         if roll_value == initial_roll_value:
             ok = False
-            # todo add roll failed message
             response.append(RollResponses.expansion_no_free_tiles())
         elif roll_value > 0:
             ok = True
@@ -138,6 +139,7 @@ class LiveTilesService(Service):
 
         return RollResponse(ok=ok, map_state_changed=state_changed, messages=response)
 
+    @method_performance
     def add_against(self, game: GameState, prompt: AgainstRollPrompt) -> RollResponse:
         # works pretty much in the same way as _add_tiles_expansion
         # the only difference is that it chooses not neutral tiles but targets tiles
@@ -181,7 +183,6 @@ class LiveTilesService(Service):
         if roll_value == initial_roll_value:
             ok = False
             response.append(RollResponses.against_no_routes(target.name))
-            # todo add roll failed message
         elif roll_value > 0:
             ok = True
             response.append(RollResponses.against_no_routes(target.name))

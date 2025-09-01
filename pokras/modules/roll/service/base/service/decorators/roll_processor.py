@@ -7,6 +7,7 @@ from modules.roll.service.base.models.gamestate_things import GameState
 from modules.roll.service.base.service.abc.bonus_processor import BonusProcessor
 from modules.roll.service.base.service.abc.service import Service
 from modules.roll.service.base.service.abc.service_decorator import ServiceDecorator
+from utils.perf import method_performance
 
 
 class RollProcessor(ServiceDecorator):
@@ -51,12 +52,15 @@ class RollProcessor(ServiceDecorator):
             service_response.messages = response
         return service_response
 
+    @method_performance
     def add_tiles(self, game: GameState, prompt: TilesRollPrompt) -> RollResponse:
         return self._process_roll(game, prompt, lambda: self._service.add_tiles(game, prompt))
 
+    @method_performance
     def add_expansion(self, game: GameState, prompt: ExpansionRollPrompt) -> RollResponse:
         return self._process_roll(game, prompt, lambda: self._service.add_expansion(game, prompt))
 
+    @method_performance
     def add_against(self, game: GameState, prompt: AgainstRollPrompt) -> RollResponse:
         return self._process_roll(game, prompt, lambda: self._service.add_against(game, prompt))
 

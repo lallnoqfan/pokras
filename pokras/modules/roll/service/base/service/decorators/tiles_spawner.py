@@ -2,6 +2,7 @@ from modules.roll.responses import RollResponses
 from modules.roll.service.base.models.api_things import TilesRollPrompt, RollResponse
 from modules.roll.service.base.models.gamestate_things import GameState, CountryState
 from modules.roll.service.base.service.abc.service_decorator import ServiceDecorator
+from utils.perf import method_performance
 
 
 class TilesSpawner(ServiceDecorator):
@@ -23,6 +24,7 @@ class TilesSpawner(ServiceDecorator):
                          tile_codes: list[str], response: list[str]) -> str | None:
         return tile_codes.pop(0)
 
+    @method_performance
     def add_tiles(self, game: GameState, prompt: TilesRollPrompt) -> RollResponse:
         country = self.repository.get_country_by_name(game, prompt.country)
         country_tiles = self.repository.get_country_tiles(country)

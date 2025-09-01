@@ -9,6 +9,7 @@ from modules.roll.service.base.service.abc.service import Service
 
 from modules.roll.service.base.service.abc.service_decorator import ServiceDecorator
 from modules.roll.service.base.service.abc.validator import Validator
+from utils.perf import method_performance
 from utils.text import Tags as T
 
 
@@ -47,6 +48,7 @@ class Cooler(ServiceDecorator):
 
         return RollResponse(ok=False, map_state_changed=False, messages=response)
 
+    @method_performance
     def add_tiles(self, game: GameState, prompt: TilesRollPrompt) -> RollResponse:
         response = self._validator.validate_tiles(game, prompt)
         if response is not None:
@@ -56,6 +58,7 @@ class Cooler(ServiceDecorator):
 
         return self.__check_cooldown(game, prompt, lambda: self._service.add_tiles(game, prompt))
 
+    @method_performance
     def add_expansion(self, game: GameState, prompt: ExpansionRollPrompt) -> RollResponse:
         response = self._validator.validate_expansion(game, prompt)
         if response is not None:
@@ -65,6 +68,7 @@ class Cooler(ServiceDecorator):
 
         return self.__check_cooldown(game, prompt, lambda: self._service.add_expansion(game, prompt))
 
+    @method_performance
     def add_against(self, game: GameState, prompt: AgainstRollPrompt) -> RollResponse:
         response = self._validator.validate_against(game, prompt)
         if response is not None:

@@ -4,10 +4,10 @@ from memory_profiler import profile
 from PIL import Image
 
 from config import Paths
-from utils.perf import time_performance
+from utils.perf import function_performance
 
 
-@time_performance
+@function_performance
 @profile
 def load_images(rgb_layers: list[Path], rgba_layers: list[Path]):
     images = []
