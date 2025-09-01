@@ -30,6 +30,14 @@ class RollResponses:
     # ========= FAILURE =========
 
     @staticmethod
+    def cooldown_roll_not_counted() -> str:
+        return T.spoiler("roll was not counted so you can roll again")
+
+    @staticmethod
+    def cooldown_can_roll_in(seconds_left: int) -> str:
+        return T.spoiler(f"you only can roll again in {seconds_left} second{'s' if seconds_left != 1 else ''}")
+
+    @staticmethod
     def expansion_without_tiles() -> str:
         return T.spoiler("you cannot roll on expansion if you don't control any tiles")
 

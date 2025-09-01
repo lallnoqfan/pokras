@@ -2,6 +2,7 @@ from datetime import timedelta
 from math import ceil
 from typing import Callable
 
+from modules.roll.responses import RollResponses
 from modules.roll.service.base.models.api_things import RollPrompt, ExpansionRollPrompt, \
     AgainstRollPrompt, TilesRollPrompt, RollResponse
 from modules.roll.service.base.models.gamestate_things import GameState
@@ -10,7 +11,6 @@ from modules.roll.service.base.service.abc.service import Service
 from modules.roll.service.base.service.abc.service_decorator import ServiceDecorator
 from modules.roll.service.base.service.abc.validator import Validator
 from utils.perf import method_performance
-from utils.text import Tags as T
 
 
 class Cooler(ServiceDecorator):
@@ -43,37 +43,44 @@ class Cooler(ServiceDecorator):
             return response
 
         seconds_left = ceil(remaining_cooldown.total_seconds())
-        # todo: move to responses
-        response = [f"You only can roll again in {seconds_left} second{'s' if seconds_left != 1 else ''}"]
-
+        response = [RollResponses.cooldown_can_roll_in(seconds_left)]
         return RollResponse(ok=False, map_state_changed=False, messages=response)
 
     @method_performance
     def add_tiles(self, game: GameState, prompt: TilesRollPrompt) -> RollResponse:
         response = self._validator.validate_tiles(game, prompt)
         if response is not None:
-            # todo: move to responses
-            response.messages.append(T.spoiler("roll was not counted and you can roll again"))
+            response.messages.append(RollResponses.cooldown_roll_not_counted())
             return response
 
-        return self.__check_cooldown(game, prompt, lambda: self._service.add_tiles(game, prompt))
+        response = self.__check_cooldown(game, prompt, lambda: self._service.add_tiles(game, prompt))
+        if response.ok:
+            return response
+        response.messages.append(RollResponses.cooldown_roll_not_counted())
+        return response
 
     @method_performance
     def add_expansion(self, game: GameState, prompt: ExpansionRollPrompt) -> RollResponse:
         response = self._validator.validate_expansion(game, prompt)
         if response is not None:
-            # todo: move to responses
-            response.messages.append(T.spoiler("roll was not counted and you can roll again"))
+            response.messages.append(RollResponses.cooldown_roll_not_counted())
             return response
 
-        return self.__check_cooldown(game, prompt, lambda: self._service.add_expansion(game, prompt))
+        response = self.__check_cooldown(game, prompt, lambda: self._service.add_expansion(game, prompt))
+        if response.ok:
+            return response
+        response.messages.append(RollResponses.cooldown_roll_not_counted())
+        return response
 
     @method_performance
     def add_against(self, game: GameState, prompt: AgainstRollPrompt) -> RollResponse:
         response = self._validator.validate_against(game, prompt)
         if response is not None:
-            # todo: move to responses
-            response.messages.append(T.spoiler("roll was not counted and you can roll again"))
+            response.messages.append(RollResponses.cooldown_roll_not_counted())
             return response
 
-        return self.__check_cooldown(game, prompt, lambda: self._service.add_against(game, prompt))
+        response = self.__check_cooldown(game, prompt, lambda: self._service.add_against(game, prompt))
+        if response.ok:
+            return response
+        response.messages.append(RollResponses.cooldown_roll_not_counted())
+        return response
