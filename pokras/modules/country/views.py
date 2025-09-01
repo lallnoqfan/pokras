@@ -13,7 +13,7 @@ class CountryCommands(Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @command(name="create", aliases=["вкат"])
+    @command(name="join", aliases=["вкат", "create"])
     @guild_only()
     @has_active_game()
     async def create_country(self, ctx: Context, name: str | None, color: str | None):
