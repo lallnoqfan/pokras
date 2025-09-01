@@ -14,11 +14,8 @@ class InfoGroup(Cog):
     async def info(self, ctx: Context):
         game = get_active_game_by_channel_id(ctx.channel.id)
 
-        # todo: move to response
-        response = []
-
         # map
-        response.append(f"Карта: {game.map.name}")
+        response = [f"Карта: {game.map.name}"]
 
         # cooldown
         cooldown_seconds = round(game.cooldown.total_seconds()) if game.cooldown is not None else 0

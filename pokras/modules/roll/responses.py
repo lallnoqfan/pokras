@@ -2,8 +2,6 @@ from utils.text import Tags as T
 
 
 class RollResponses:
-    # todo: separate logic responses from validation responses
-
     # ========= MISSING ARGUMENTS =========
 
     @staticmethod
