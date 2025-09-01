@@ -26,16 +26,20 @@ class Cooler(ServiceDecorator):
         country = self.repository.get_country_by_name(game, prompt.country)
         last_roll = self.repository.get_last_roll(game, country)
         if last_roll is None:
-            self.repository.set_last_roll(game, country, prompt.timestamp)
-            return func()
+            response = func()
+            if response.ok:
+                self.repository.set_last_roll(game, country, prompt.timestamp)
+            return response
 
         zero = timedelta(seconds=0)
         time_since_last_roll = prompt.timestamp - last_roll.timestamp
         remaining_cooldown = game.cooldown - time_since_last_roll
 
         if remaining_cooldown <= zero:
-            self.repository.set_last_roll(game, country, prompt.timestamp)
-            return func()
+            response = func()
+            if response.ok:
+                self.repository.set_last_roll(game, country, prompt.timestamp)
+            return response
 
         seconds_left = ceil(remaining_cooldown.total_seconds())
         # todo: move to responses
@@ -46,6 +50,7 @@ class Cooler(ServiceDecorator):
     def add_tiles(self, game: GameState, prompt: TilesRollPrompt) -> RollResponse:
         response = self._validator.validate_tiles(game, prompt)
         if response is not None:
+            # todo: move to responses
             response.messages.append(T.spoiler("roll was not counted and you can roll again"))
             return response
 
@@ -54,6 +59,7 @@ class Cooler(ServiceDecorator):
     def add_expansion(self, game: GameState, prompt: ExpansionRollPrompt) -> RollResponse:
         response = self._validator.validate_expansion(game, prompt)
         if response is not None:
+            # todo: move to responses
             response.messages.append(T.spoiler("roll was not counted and you can roll again"))
             return response
 
@@ -62,6 +68,7 @@ class Cooler(ServiceDecorator):
     def add_against(self, game: GameState, prompt: AgainstRollPrompt) -> RollResponse:
         response = self._validator.validate_against(game, prompt)
         if response is not None:
+            # todo: move to responses
             response.messages.append(T.spoiler("roll was not counted and you can roll again"))
             return response
 

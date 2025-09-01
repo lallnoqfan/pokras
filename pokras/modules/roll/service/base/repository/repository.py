@@ -5,10 +5,11 @@ from modules.game.queries.get_game import get_game_by_id
 from modules.game.service.models.roll_values import RollValues
 from modules.game.service.service import get_roll_values
 from modules.roll.models.last_roll import LastRoll
+from modules.roll.queries.create_last_roll import create_last_roll
 from modules.roll.queries.create_tile import create_tile
 from modules.roll.queries.get_last_roll import get_last_roll
 from modules.roll.queries.get_tile import get_tile
-from modules.roll.queries.update_last_roll import set_last_roll_timestamp
+from modules.roll.queries.update_last_roll import update_last_roll_timestamp
 from modules.roll.queries.update_tile import update_tile_owner
 from modules.roll.service.base.models.gamestate_things import GameState, CountryState, TileState
 
@@ -54,8 +55,9 @@ class Repository:
     def set_last_roll(cls, game: GameState, country: CountryState, timestamp: datetime) -> None:
         last_roll = get_last_roll(game.id, country.id)
         if last_roll is None:
-            return
-        set_last_roll_timestamp(last_roll.id, timestamp)
+            create_last_roll(game.id, country.id, timestamp)
+        else:
+            update_last_roll_timestamp(last_roll.id, timestamp)
 
     @classmethod
     def get_country_tiles(cls, country: CountryState) -> list[TileState]:
