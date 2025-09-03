@@ -23,6 +23,10 @@ class Game(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=False)
 
     map: Mapped[GameMap] = mapped_column(Enum(GameMap, native_enum=False), nullable=False)
+    # tiles_num: Mapped[int] = mapped_column(nullable=False)
+    # todo: общее количество тайлов на карте лучше брать из тайлера, чтобы не забивать бд
+    neutral_tiles_num: Mapped[int] = mapped_column(nullable=False)
+
     roll_values: Mapped[str] = mapped_column(String(100), nullable=False)
     use_cooldown: Mapped[bool] = mapped_column(Boolean, nullable=False)
     cooldown: Mapped[timedelta] = mapped_column(Interval, nullable=True)

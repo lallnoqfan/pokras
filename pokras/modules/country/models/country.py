@@ -22,6 +22,7 @@ class Country(Base):
     name: Mapped[str] = mapped_column(String(50), nullable=False)
     color: Mapped[str] = mapped_column(String(7), nullable=False)
     creator_id: Mapped[int] = mapped_column(nullable=False)
+    tiles_num: Mapped[int] = mapped_column(nullable=False, default=0)
 
     game_id: Mapped[int] = mapped_column(ForeignKey("game.id", ondelete="CASCADE"), nullable=False)
 
