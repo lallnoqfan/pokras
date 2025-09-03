@@ -1,4 +1,4 @@
-from abc import ABC
+from functools import cache
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
@@ -12,19 +12,21 @@ from modules.roll.service.base.tiler.abc.tiler import Tiler
 from utils.perf import method_performance
 
 
-class BasePainter(Painter, ABC):
+class BasePainter(Painter):
     """
     Базовая реализация покрасчика. Рисует карту без легенды.
     """
     def __init__(self, font_path: Path, map_layer: Layer):
         super().__init__(font_path, map_layer)
 
-    def _load_map(self) -> Image.Image:
-        return Image.open(self.map_layer.file_path).convert("RGBA")
+    @staticmethod
+    @cache
+    def _load_map(layer: Layer) -> Image.Image:
+        return Image.open(layer.file_path).convert("RGBA")
 
     @method_performance
     def draw_map(self, countries: list[CountryState], tiler: Tiler, repository: Repository) -> Image.Image:
-        map_image = self._load_map().copy()
+        map_image = self._load_map(self.map_layer).copy()
 
         if isinstance(self.map_layer, Path):
             dx, dy = 0, 0

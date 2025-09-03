@@ -6,7 +6,7 @@ from modules.game.queries.get_game import get_active_game_by_channel_id
 from modules.roll.service.base.models.api_things import AgainstRollPrompt, ExpansionRollPrompt, TilesRollPrompt
 from modules.roll.service.strategy import ServiceFactory
 from utils.checks import has_active_game
-from utils.discord import pillow_to_file
+from utils.discord import pillow_to_file, cv2_to_file
 from utils.random import dices
 from utils.text import Tags as T
 
@@ -258,7 +258,7 @@ class RollCommands(Cog):
 
         map_image = painter.draw_map(countries, tiler, repository)
 
-        map_file = pillow_to_file(map_image, "map.png")
+        map_file = cv2_to_file(map_image, "map.png")
         await ctx.reply(file=map_file)
 
     @draw_map.error

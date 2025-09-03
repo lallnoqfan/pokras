@@ -1,12 +1,12 @@
 from config import Paths
 from modules.roll.service.base.models.config import ServiceConfig, PainterConfig, TilerConfig
 from modules.roll.service.base.models.utils_things import Layer
-from modules.roll.service.base.painter.base_painter import BasePainter
+from modules.roll.service.base.painter.cv_base_painter import Cv2BasePainter
 from modules.roll.service.base.tiler.tilers.legacy_tiler import LegacyTiler
 
 
 class EuClassicPainterConfig(PainterConfig):
-    base_painter = BasePainter
+    base_painter = Cv2BasePainter
     map_layer = Layer(Paths.EU_CLASSIC / "map.png")
 
 
