@@ -24,6 +24,7 @@ from modules.roll.service.base.tiler.decorators.tiles_bonuses_tiler import Tiles
 from modules.roll.service.eu_classic.config import EuClassicConfig
 from modules.roll.service.korea.config import KoreaConfig
 from modules.roll.service.ops_ass.config import OpsAssConfig
+from modules.roll.service.sradtarctica.config import SradtarcticaConfig
 from modules.roll.service.stalker.config import StalkerConfig
 from utils.perf import class_method_performance
 
@@ -44,6 +45,8 @@ class ServiceFactory:
                 config = KoreaConfig
             case GameMap.ops_ass:
                 config = OpsAssConfig
+            case GameMap.sradtarctica:
+                config = SradtarcticaConfig
             case _:
                 raise ValueError(f"Unknown game map: {game.map}")
 

@@ -51,4 +51,6 @@ class Paths:
     OPS_ASS_MAP = OPS_ASS / "map.png"
     OPS_ASS_TILES = OPS_ASS / "tiles_data.json"
 
+    SRADTARCTICA = MAPS / "sradtarctica"
+
     FONT_CODENAME = FONTS / "CodenameCoderFree4F-Bold.ttf"

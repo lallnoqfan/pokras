@@ -6,3 +6,4 @@ class GameMap(StrEnum):
     stalker = "stalker"
     korea = "korea"
     ops_ass = "ops_ass"
+    sradtarctica = "sradtarctica"
